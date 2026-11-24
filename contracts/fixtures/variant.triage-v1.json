@@ -1,0 +1,8 @@
+{
+  "id": "v1",
+  "featureId": "triage",
+  "systemInstruction": "You triage customer messages for a small online shop. Reply with JSON only.",
+  "promptTemplate": "Classify this customer message.\nintent: what the customer wants. urgency: high if money is lost, an item is damaged or a deadline is today. orderId: the order number exactly as written (format CT-12345) or null. language: ISO code of the message language.\n\nMessage:\n{{input}}",
+  "sha256": "b6a48fbb93c5c98bc534687e4dc221f1dd3aa5d7e2dca5d717f471b15a327b1e",
+  "origin": "human"
+}

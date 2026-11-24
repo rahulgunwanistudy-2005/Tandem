@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tandem.dev/contracts/output-schema.schema.json",
+  "title": "Output schema",
+  "description": "The subset of the Gemini/OpenAPI Schema that every on-device runtime can enforce and every Tandem validator (TS, Kotlin, Swift) implements identically.",
+  "type": "object",
+  "required": ["type"],
+  "additionalProperties": false,
+  "properties": {
+    "type": { "enum": ["object", "array", "string", "number", "integer", "boolean"] },
+    "description": { "type": "string", "maxLength": 500 },
+    "nullable": { "type": "boolean" },
+    "enum": { "type": "array", "items": { "type": "string" }, "minItems": 1, "uniqueItems": true },
+    "properties": { "type": "object", "additionalProperties": { "$ref": "#" } },
+    "required": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "items": { "$ref": "#" },
+    "minItems": { "type": "integer", "minimum": 0 },
+    "maxItems": { "type": "integer", "minimum": 0 },
+    "minLength": { "type": "integer", "minimum": 0 },
+    "maxLength": { "type": "integer", "minimum": 0 },
+    "minimum": { "type": "number" },
+    "maximum": { "type": "number" }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tandem.dev/contracts/common.schema.json",
+  "title": "Common definitions",
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$" },
+    "modelId": {
+      "description": "<platform>:<model>. Examples: chrome:158, android:nano-v4, ios:26.1, cloud:gemini-3.5-flash-lite. A trailing * is a platform wildcard (android:*).",
+      "type": "string",
+      "pattern": "^(chrome|android|ios|cloud):([A-Za-z0-9._-]+|\\*)$"
+    },
+    "platform": { "enum": ["chrome", "android", "ios", "cloud"] },
+    "inferenceMode": { "enum": ["PREFER_ON_DEVICE", "ONLY_ON_DEVICE", "PREFER_IN_CLOUD", "ONLY_IN_CLOUD"] },
+    "backend": { "enum": ["ON_DEVICE", "IN_CLOUD", "UNKNOWN"] },
+    "errorCode": {
+      "enum": [
+        "MODEL_UNAVAILABLE", "MODEL_DOWNLOADING", "BUSY", "QUOTA", "GUARDRAIL", "SCHEMA_INVALID",
+        "INPUT_TOO_LONG", "INTEGRITY_CLOUD_ANSWER", "OFFLINE", "UNKNOWN"
+      ]
+    },
+    "split": { "enum": ["train", "holdout"] },
+    "isoTime": { "type": "string", "format": "date-time" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tandem.dev/contracts/variant.schema.json",
+  "title": "Variant",
+  "description": "Immutable prompt variant. promptTemplate uses {{input}} for the case input. sha256 covers systemInstruction + promptTemplate.",
+  "type": "object",
+  "required": ["id", "featureId", "systemInstruction", "promptTemplate", "sha256", "origin"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "common.schema.json#/$defs/id" },
+    "featureId": { "$ref": "common.schema.json#/$defs/id" },
+    "systemInstruction": { "type": "string", "maxLength": 8000 },
+    "promptTemplate": { "type": "string", "minLength": 1, "maxLength": 16000, "pattern": "\\{\\{input\\}\\}" },
+    "sha256": { "$ref": "common.schema.json#/$defs/sha256" },
+    "parentId": { "$ref": "common.schema.json#/$defs/id" },
+    "origin": { "enum": ["human", "repair"] },
+    "targetModelId": { "$ref": "common.schema.json#/$defs/modelId" },
+    "rationale": { "type": "string", "maxLength": 2000 }
+  }
+}

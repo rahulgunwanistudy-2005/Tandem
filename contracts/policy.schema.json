@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tandem.dev/contracts/policy.schema.json",
+  "title": "Routing policy",
+  "description": "Published as the Remote Config parameter tandem_policy_<featureId>. Resolved on the client: exact modelId, then platform wildcard, then default.",
+  "type": "object",
+  "required": ["schemaVersion", "featureId", "version", "compiledAt", "tau", "default", "rules", "variants"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "featureId": { "$ref": "common.schema.json#/$defs/id" },
+    "version": { "type": "integer", "minimum": 1 },
+    "compiledAt": { "$ref": "common.schema.json#/$defs/isoTime" },
+    "tau": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+    "sourceRunIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/id" } },
+    "default": { "$ref": "#/$defs/rule" },
+    "rules": {
+      "type": "object",
+      "propertyNames": { "$ref": "common.schema.json#/$defs/modelId" },
+      "additionalProperties": { "$ref": "#/$defs/rule" }
+    },
+    "variants": {
+      "description": "Every variant a rule references, so clients need no second fetch.",
+      "type": "object",
+      "propertyNames": { "$ref": "common.schema.json#/$defs/id" },
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false, "required": ["systemInstruction", "promptTemplate", "sha256"],
+        "properties": {
+          "systemInstruction": { "type": "string" },
+          "promptTemplate": { "type": "string" },
+          "sha256": { "$ref": "common.schema.json#/$defs/sha256" }
+        }
+      }
+    },
+    "outputSchema": { "$ref": "output-schema.schema.json" },
+    "outputKind": { "enum": ["json", "enum", "text"] },
+    "cloudModel": { "type": "string" }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object", "additionalProperties": false, "required": ["mode", "variantId", "reason"],
+      "properties": {
+        "mode": { "$ref": "common.schema.json#/$defs/inferenceMode" },
+        "variantId": { "$ref": "common.schema.json#/$defs/id" },
+        "reason": { "enum": ["PASSED", "INSUFFICIENT_EVIDENCE", "LB_BELOW_TAU", "LATENCY_OVER_BUDGET", "INTEGRITY_FAILURES", "NO_EVIDENCE", "AUTO_ROLLBACK", "MANUAL"] },
+        "evidence": {
+          "type": "object", "additionalProperties": false, "required": ["n", "passes", "lb"],
+          "properties": {
+            "n": { "type": "integer", "minimum": 0 },
+            "passes": { "type": "integer", "minimum": 0 },
+            "lb": { "type": "number", "minimum": 0, "maximum": 1 },
+            "p95LatencyMs": { "type": "number", "minimum": 0 },
+            "flakiness": { "type": "number", "minimum": 0, "maximum": 1 },
+            "integrityFailures": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    }
+  }
+}

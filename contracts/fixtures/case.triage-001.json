@@ -1,0 +1,33 @@
+{
+  "id": "c001",
+  "input": {
+    "text": "Hi, my order CT-48213 arrived with the mug smashed. I need a replacement before Friday, it's a gift."
+  },
+  "asserts": [
+    {
+      "kind": "equals",
+      "path": "intent",
+      "value": "damaged_item"
+    },
+    {
+      "kind": "equals",
+      "path": "urgency",
+      "value": "high"
+    },
+    {
+      "kind": "equals",
+      "path": "orderId",
+      "value": "CT-48213"
+    },
+    {
+      "kind": "equals",
+      "path": "language",
+      "value": "en"
+    }
+  ],
+  "split": "train",
+  "tags": [
+    "damage",
+    "has-order-id"
+  ]
+}

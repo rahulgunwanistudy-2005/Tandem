@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tandem.dev/contracts/job.schema.json",
+  "title": "Job",
+  "description": "One (case, target, sample) unit of work. Claimed by a runner through a transactional lease.",
+  "type": "object",
+  "required": ["id", "runId", "caseId", "variantId", "target", "sample", "state", "attempt"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "common.schema.json#/$defs/id" },
+    "runId": { "$ref": "common.schema.json#/$defs/id" },
+    "caseId": { "$ref": "common.schema.json#/$defs/id" },
+    "variantId": { "$ref": "common.schema.json#/$defs/id" },
+    "target": { "$ref": "common.schema.json#/$defs/modelId" },
+    "split": { "$ref": "common.schema.json#/$defs/split" },
+    "sample": { "type": "integer", "minimum": 0, "maximum": 20 },
+    "state": { "enum": ["queued", "leased", "done", "failed"] },
+    "leaseOwner": { "type": "string" },
+    "leaseExpiresAt": { "$ref": "common.schema.json#/$defs/isoTime" },
+    "attempt": { "type": "integer", "minimum": 0, "maximum": 10 },
+    "result": { "$ref": "result.schema.json" },
+    "checks": { "type": "array", "items": { "$ref": "#/$defs/check" } },
+    "judge": { "$ref": "#/$defs/judge" },
+    "verdict": { "enum": ["pass", "fail", "integrity_fail", "error", "pending_judge"] }
+  },
+  "$defs": {
+    "check": {
+      "type": "object", "additionalProperties": false, "required": ["id", "pass"],
+      "properties": { "id": { "type": "string" }, "pass": { "type": "boolean" }, "detail": { "type": "string", "maxLength": 500 } }
+    },
+    "judge": {
+      "type": "object", "additionalProperties": false, "required": ["pass", "score", "reason", "cacheKey"],
+      "properties": {
+        "pass": { "type": "boolean" },
+        "score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "reason": { "type": "string", "maxLength": 1000 },
+        "cacheKey": { "$ref": "common.schema.json#/$defs/sha256" },
+        "model": { "type": "string" }
+      }
+    }
+  }
+}

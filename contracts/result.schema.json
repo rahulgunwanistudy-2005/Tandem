@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tandem.dev/contracts/result.schema.json",
+  "title": "Job result",
+  "description": "What a runner reports for one sample. outputText is test data authored by the project, never end-user content.",
+  "type": "object",
+  "required": ["backend", "latencyMs", "modelId", "inputChars"],
+  "additionalProperties": false,
+  "properties": {
+    "outputText": { "type": "string", "maxLength": 20000 },
+    "backend": { "$ref": "common.schema.json#/$defs/backend" },
+    "latencyMs": { "type": "number", "minimum": 0 },
+    "ttftMs": { "type": "number", "minimum": 0 },
+    "modelId": { "$ref": "common.schema.json#/$defs/modelId" },
+    "inputChars": { "type": "integer", "minimum": 0 },
+    "errorCode": { "$ref": "common.schema.json#/$defs/errorCode" },
+    "errorMessage": { "type": "string", "maxLength": 1000 }
+  }
+}

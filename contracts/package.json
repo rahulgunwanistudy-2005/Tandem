@@ -1,0 +1,13 @@
+{
+  "name": "@tandem/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "JSON Schemas shared by every Tandem component (TS, Kotlin, Swift).",
+  "type": "module",
+  "exports": {
+    "./*.json": "./*.json",
+    "./fixtures/*.json": "./fixtures/*.json"
+  },
+  "files": ["*.json", "fixtures"]
+}

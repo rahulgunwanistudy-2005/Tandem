@@ -1,0 +1,15 @@
+{
+  "eventId": "evt_01JDX7Q3",
+  "featureId": "triage",
+  "modelId": "android:nano-v4",
+  "platform": "android",
+  "policyVersion": 3,
+  "mode": "PREFER_ON_DEVICE",
+  "backend": "ON_DEVICE",
+  "latencyMs": 1204,
+  "validation": "pass",
+  "escalated": false,
+  "ts": 1764064800000,
+  "sdk": "android/0.1.0",
+  "outputText": "{\"intent\":\"billing\"}"
+}

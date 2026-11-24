@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "featureId": "triage",
+  "version": 1,
+  "compiledAt": "2026-11-25T10:00:00.000Z",
+  "tau": 0.85,
+  "default": {
+    "mode": "SOMETIMES_ON_DEVICE",
+    "variantId": "v1",
+    "reason": "MANUAL"
+  },
+  "rules": {},
+  "variants": {}
+}

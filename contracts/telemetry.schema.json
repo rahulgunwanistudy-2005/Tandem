@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tandem.dev/contracts/telemetry.schema.json",
+  "title": "Telemetry event",
+  "description": "One runtime inference. Content-free by construction: no prompt, input or output text is allowed (additionalProperties: false).",
+  "type": "object",
+  "required": ["eventId", "featureId", "modelId", "platform", "policyVersion", "mode", "backend", "latencyMs", "validation", "escalated", "ts", "sdk"],
+  "additionalProperties": false,
+  "properties": {
+    "eventId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{8,64}$" },
+    "featureId": { "$ref": "common.schema.json#/$defs/id" },
+    "modelId": { "$ref": "common.schema.json#/$defs/modelId" },
+    "platform": { "$ref": "common.schema.json#/$defs/platform" },
+    "policyVersion": { "type": "integer", "minimum": 0 },
+    "variantId": { "$ref": "common.schema.json#/$defs/id" },
+    "mode": { "$ref": "common.schema.json#/$defs/inferenceMode" },
+    "backend": { "$ref": "common.schema.json#/$defs/backend" },
+    "latencyMs": { "type": "number", "minimum": 0, "maximum": 600000 },
+    "validation": { "enum": ["pass", "fail", "skipped"] },
+    "escalated": { "type": "boolean" },
+    "errorCode": { "$ref": "common.schema.json#/$defs/errorCode" },
+    "ts": { "type": "integer", "minimum": 0, "description": "epoch millis" },
+    "sdk": { "type": "string", "pattern": "^(web|android|ios)/[0-9]+\\.[0-9]+\\.[0-9]+$" }
+  }
+}

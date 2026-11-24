@@ -1,0 +1,54 @@
+{
+  "id": "r1-c001-android_nano-v4-0",
+  "runId": "r1",
+  "caseId": "c001",
+  "variantId": "v1",
+  "target": "android:nano-v4",
+  "split": "train",
+  "sample": 0,
+  "state": "done",
+  "attempt": 1,
+  "result": {
+    "outputText": "{\"intent\":\"damaged_item\",\"urgency\":\"high\",\"orderId\":\"CT-48213\",\"language\":\"en\"}",
+    "backend": "ON_DEVICE",
+    "latencyMs": 1312.4,
+    "ttftMs": 640,
+    "modelId": "android:nano-v4",
+    "inputChars": 412
+  },
+  "checks": [
+    {
+      "id": "integrity",
+      "pass": true
+    },
+    {
+      "id": "parse",
+      "pass": true
+    },
+    {
+      "id": "schema",
+      "pass": true
+    },
+    {
+      "id": "assert:0:equals",
+      "pass": true
+    },
+    {
+      "id": "assert:1:equals",
+      "pass": true
+    },
+    {
+      "id": "assert:2:equals",
+      "pass": true
+    },
+    {
+      "id": "assert:3:equals",
+      "pass": true
+    },
+    {
+      "id": "latency",
+      "pass": true
+    }
+  ],
+  "verdict": "pass"
+}

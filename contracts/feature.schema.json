@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tandem.dev/contracts/feature.schema.json",
+  "title": "Feature",
+  "description": "A prompt-backed product feature under test. Prompt text lives in immutable variants.",
+  "type": "object",
+  "required": ["id", "name", "outputKind", "outputSchema", "genConfig", "latencyBudgetMs", "cloudModel"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "common.schema.json#/$defs/id" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "description": { "type": "string", "maxLength": 500 },
+    "outputKind": { "enum": ["json", "enum", "text"] },
+    "outputSchema": { "$ref": "output-schema.schema.json" },
+    "genConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+        "topK": { "type": "integer", "minimum": 1 },
+        "maxOutputTokens": { "type": "integer", "minimum": 1, "maximum": 8192 }
+      }
+    },
+    "latencyBudgetMs": { "type": "integer", "minimum": 100, "maximum": 120000 },
+    "cloudModel": { "type": "string", "minLength": 1 },
+    "defaultVariantId": { "$ref": "common.schema.json#/$defs/id" }
+  }
+}

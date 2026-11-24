@@ -1,0 +1,33 @@
+{
+  "id": "c007",
+  "input": {
+    "text": "Hola, pedí unas zapatillas (pedido CT-90317) y me llegaron en talla 42 en vez de 40. ¿Cómo hago el cambio?"
+  },
+  "asserts": [
+    {
+      "kind": "length",
+      "path": "reply",
+      "min": 40,
+      "max": 1400,
+      "unit": "chars"
+    },
+    {
+      "kind": "contains",
+      "path": "reply",
+      "substring": "CT-90317"
+    },
+    {
+      "kind": "regex",
+      "path": "reply",
+      "pattern": "\\b(refund guaranteed|100% refund)\\b",
+      "flags": "i",
+      "negate": true
+    }
+  ],
+  "rubric": "Reply is in Spanish, apologises once, explains how to exchange the size, and does not promise a refund or a delivery date.",
+  "split": "holdout",
+  "tags": [
+    "es",
+    "exchange"
+  ]
+}

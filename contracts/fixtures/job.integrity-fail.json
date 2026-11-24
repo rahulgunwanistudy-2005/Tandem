@@ -1,0 +1,27 @@
+{
+  "id": "r1-c001-chrome_158-1",
+  "runId": "r1",
+  "caseId": "c001",
+  "variantId": "v1",
+  "target": "chrome:158",
+  "split": "train",
+  "sample": 1,
+  "state": "done",
+  "attempt": 1,
+  "result": {
+    "outputText": "{\"intent\":\"damaged_item\",\"urgency\":\"high\",\"orderId\":\"CT-48213\",\"language\":\"en\"}",
+    "backend": "IN_CLOUD",
+    "latencyMs": 820,
+    "ttftMs": 640,
+    "modelId": "chrome:158",
+    "inputChars": 412
+  },
+  "checks": [
+    {
+      "id": "integrity",
+      "pass": false,
+      "detail": "device job answered by IN_CLOUD"
+    }
+  ],
+  "verdict": "integrity_fail"
+}
