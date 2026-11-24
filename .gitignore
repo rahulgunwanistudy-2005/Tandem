@@ -1,0 +1,33 @@
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+# Firebase
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+emulator-data/
+# Android
+.gradle/
+local.properties
+*.apk
+*.aab
+apps/android/**/build/
+apps/android/app/google-services.json
+# iOS
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.swiftpm/
+.build/
+apps/ios/**/GoogleService-Info.plist
+# Playwright
+test-results/
+playwright-report/
