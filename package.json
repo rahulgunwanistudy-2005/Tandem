@@ -4,7 +4,9 @@
   "description": "Test prompts on real on-device models, judge and repair with a cloud model, publish per-model routing through Remote Config.",
   "license": "Apache-2.0",
   "packageManager": "pnpm@11.22.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "pnpm -r --filter ./packages/** --filter ./apps/** build",
     "typecheck": "pnpm -r typecheck",
@@ -12,5 +14,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.37.0"
   }
 }

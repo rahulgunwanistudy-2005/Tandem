@@ -1,0 +1,230 @@
+rules_version = '2';
+
+// Tandem Firestore security rules.
+//
+// Roles:
+//   member  — uid in projects/{pid}.memberUids. Full read/write on the project's authoring data.
+//   runner  — uid in projects/{pid}.runnerUids, added only by the claimPairing function.
+//             Reads what it needs to execute jobs; writes only its own device doc and the jobs it
+//             leases, through a strict state machine.
+//   any signed-in app — may *create* content-free telemetry with a validated shape. Nothing else.
+//
+// Admin SDK writes (Cloud Functions: publishPolicy, claimPairing, reapLeases, aggregateTelemetry,
+// autoRollback) bypass these rules by design.
+// Tests: firebase/test/rules.test.ts (run on the emulator).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function signedIn() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+    function projectDoc(pid) { return get(/databases/$(database)/documents/projects/$(pid)).data; }
+    function isMember(pid) { return signedIn() && uid() in projectDoc(pid).memberUids; }
+    function isRunner(pid) { return signedIn() && uid() in projectDoc(pid).get('runnerUids', []); }
+    function canRead(pid) { return isMember(pid) || isRunner(pid); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function changedKeys() { return incoming().diff(existing()).affectedKeys(); }
+    function strBetween(v, lo, hi) { return v is string && v.size() >= lo && v.size() <= hi; }
+    function myDevice(pid) {
+      return get(/databases/$(database)/documents/projects/$(pid)/devices/$(uid())).data;
+    }
+    function hasMyDevice(pid) {
+      return exists(/databases/$(database)/documents/projects/$(pid)/devices/$(uid()));
+    }
+    function leaseOk(ts) { return ts is timestamp && ts > request.time && ts <= request.time + duration.value(120, 's'); }
+
+    // ---------- projects ----------
+    match /projects/{pid} {
+      allow read: if signedIn()
+        && (uid() in existing().memberUids || uid() in existing().get('runnerUids', []));
+
+      allow create: if signedIn()
+        && incoming().keys().hasOnly(['name', 'ownerUid', 'memberUids', 'runnerUids', 'settings', 'createdAt'])
+        && incoming().ownerUid == uid()
+        && incoming().memberUids == [uid()]
+        && incoming().get('runnerUids', []) == []
+        && strBetween(incoming().name, 1, 80);
+
+      // Members edit name/settings. The owner may also manage members (staying a member) and
+      // remove — never add — runners. Runners are only added by claimPairing.
+      allow update: if isMember(pid)
+        && incoming().ownerUid == existing().ownerUid
+        && strBetween(incoming().name, 1, 80)
+        && (
+          changedKeys().hasOnly(['name', 'settings'])
+          || (uid() == existing().ownerUid
+              && changedKeys().hasOnly(['name', 'settings', 'memberUids', 'runnerUids'])
+              && uid() in incoming().memberUids
+              && incoming().get('runnerUids', []).toSet()
+                   .difference(existing().get('runnerUids', []).toSet()).size() == 0)
+        );
+
+      allow delete: if signedIn() && uid() == existing().ownerUid;
+
+      // ---------- authoring data ----------
+      match /features/{fid} {
+        allow read: if canRead(pid);
+        allow write: if isMember(pid);
+      }
+      match /features/{fid}/variants/{vid} {
+        allow read: if canRead(pid);
+        // Variants are immutable: results reference them by id and sha256.
+        allow create: if isMember(pid)
+          && strBetween(incoming().promptTemplate, 1, 16000)
+          && incoming().promptTemplate.matches('(?s).*\\{\\{input\\}\\}.*')
+          && incoming().sha256.matches('^[a-f0-9]{64}$')
+          && incoming().origin in ['human', 'repair'];
+        allow update: if false;
+        allow delete: if false;
+      }
+      match /features/{fid}/cases/{cid} {
+        allow read: if canRead(pid);
+        allow write: if isMember(pid);
+      }
+
+      // ---------- devices (doc id == the runner's uid) ----------
+      match /devices/{did} {
+        allow read: if isMember(pid) || (isRunner(pid) && did == uid());
+        allow create, update: if (isMember(pid) || isRunner(pid))
+          && did == uid()
+          && incoming().runnerUid == uid()
+          && incoming().keys().hasOnly(['platform', 'modelId', 'osVersion', 'availability', 'capabilities', 'lastSeen', 'runnerUid', 'label', 'queueDepth'])
+          && incoming().platform in ['chrome', 'android', 'ios']
+          && incoming().modelId is string
+          && incoming().modelId.matches('^(chrome|android|ios):[A-Za-z0-9._-]+$')
+          && incoming().modelId.split(':')[0] == incoming().platform;
+        allow delete: if isMember(pid) || (isRunner(pid) && did == uid());
+      }
+
+      // ---------- runs ----------
+      match /runs/{rid} {
+        allow read: if canRead(pid);
+        allow create: if isMember(pid) && incoming().createdBy == uid();
+        allow update: if isMember(pid) && incoming().createdBy == existing().createdBy;
+        allow delete: if isMember(pid);
+
+        // Jobs follow a lease state machine:
+        //   queued --claim--> leased --heartbeat--> leased --complete--> done | failed
+        // Only a device whose modelId equals the job's target may claim it.
+        match /jobs/{jid} {
+          allow read: if canRead(pid);
+
+          allow create: if isMember(pid)
+            && incoming().state == 'queued'
+            && incoming().attempt == 0
+            && !('leaseOwner' in incoming())
+            && !('result' in incoming());
+
+          allow update: if
+            // claim
+            (
+              (isMember(pid) || isRunner(pid)) && hasMyDevice(pid)
+              && existing().state == 'queued'
+              && myDevice(pid).modelId == existing().target
+              && changedKeys().hasOnly(['state', 'leaseOwner', 'leaseExpiresAt', 'attempt'])
+              && incoming().state == 'leased'
+              && incoming().leaseOwner == uid()
+              && incoming().attempt == existing().attempt + 1
+              && leaseOk(incoming().leaseExpiresAt)
+            )
+            // heartbeat
+            || (
+              signedIn()
+              && existing().state == 'leased' && existing().leaseOwner == uid()
+              && changedKeys().hasOnly(['leaseExpiresAt'])
+              && leaseOk(incoming().leaseExpiresAt)
+            )
+            // complete — the reported model must be the job's target
+            || (
+              signedIn()
+              && existing().state == 'leased' && existing().leaseOwner == uid()
+              && changedKeys().hasOnly(['state', 'result', 'checks', 'verdict', 'completedAt'])
+              && incoming().state in ['done', 'failed']
+              && incoming().result.modelId == existing().target
+              && incoming().result.backend in ['ON_DEVICE', 'IN_CLOUD', 'UNKNOWN']
+              && incoming().result.latencyMs is number
+            )
+            // console: attach judge result / final verdict to a finished job
+            || (
+              isMember(pid)
+              && existing().state == 'done'
+              && changedKeys().hasOnly(['judge', 'verdict', 'checks'])
+            )
+            // console: cancel unfinished work
+            || (
+              isMember(pid)
+              && existing().state in ['queued', 'leased']
+              && changedKeys().hasOnly(['state'])
+              && incoming().state == 'failed'
+            );
+
+          allow delete: if isMember(pid);
+        }
+      }
+
+      // ---------- written only by Cloud Functions ----------
+      match /policies/{version} {
+        allow read: if isMember(pid);
+        allow write: if false;
+      }
+      match /incidents/{iid} {
+        allow read: if isMember(pid);
+        allow write: if false;
+      }
+      match /telemetry_agg/{aid} {
+        allow read: if isMember(pid);
+        allow write: if false;
+      }
+      match /judge_cache/{key} {
+        allow read: if isMember(pid);
+        allow create: if isMember(pid) && key.matches('^[a-f0-9]{64}$')
+          && incoming().keys().hasOnly(['pass', 'score', 'reason', 'model', 'createdAt']);
+        allow update, delete: if false;
+      }
+
+      // ---------- runtime telemetry: create-only, content-free, shape-validated ----------
+      match /telemetry_raw/{eid} {
+        allow read: if isMember(pid);
+        allow update, delete: if false;
+        allow create: if signedIn()
+          && exists(/databases/$(database)/documents/projects/$(pid))
+          && incoming().keys().hasAll(['eventId', 'featureId', 'modelId', 'platform', 'policyVersion', 'mode', 'backend', 'latencyMs', 'validation', 'escalated', 'ts', 'sdk', 'expireAt'])
+          && incoming().keys().hasOnly(['eventId', 'featureId', 'modelId', 'platform', 'policyVersion', 'variantId', 'mode', 'backend', 'latencyMs', 'validation', 'escalated', 'errorCode', 'ts', 'sdk', 'expireAt'])
+          && incoming().eventId == eid
+          && strBetween(incoming().featureId, 1, 64)
+          && incoming().modelId is string && incoming().modelId.matches('^(chrome|android|ios|cloud):[A-Za-z0-9._-]+$')
+          && incoming().platform in ['chrome', 'android', 'ios', 'cloud']
+          && incoming().policyVersion is int && incoming().policyVersion >= 0
+          && incoming().mode in ['PREFER_ON_DEVICE', 'ONLY_ON_DEVICE', 'PREFER_IN_CLOUD', 'ONLY_IN_CLOUD']
+          && incoming().backend in ['ON_DEVICE', 'IN_CLOUD', 'UNKNOWN']
+          && incoming().latencyMs is number && incoming().latencyMs >= 0 && incoming().latencyMs <= 600000
+          && incoming().validation in ['pass', 'fail', 'skipped']
+          && incoming().escalated is bool
+          && (!('errorCode' in incoming()) || incoming().errorCode in ['MODEL_UNAVAILABLE', 'MODEL_DOWNLOADING', 'BUSY', 'QUOTA', 'GUARDRAIL', 'SCHEMA_INVALID', 'INPUT_TOO_LONG', 'INTEGRITY_CLOUD_ANSWER', 'OFFLINE', 'UNKNOWN'])
+          && (!('variantId' in incoming()) || strBetween(incoming().variantId, 1, 64))
+          && incoming().ts is int
+          && incoming().sdk is string && incoming().sdk.matches('^(web|android|ios)/[0-9]+\\.[0-9]+\\.[0-9]+$')
+          && incoming().expireAt is timestamp
+          && incoming().expireAt <= request.time + duration.value(8, 'd');
+      }
+    }
+
+    // ---------- device pairing ----------
+    match /pairings/{code} {
+      allow read: if signedIn() && isMember(existing().pid);
+      allow create: if signedIn()
+        && code.matches('^[A-HJ-NP-Z2-9]{6}$')
+        && incoming().keys().hasOnly(['pid', 'createdBy', 'expiresAt', 'createdAt'])
+        && incoming().createdBy == uid()
+        && isMember(incoming().pid)
+        && incoming().expiresAt is timestamp
+        && incoming().expiresAt > request.time
+        && incoming().expiresAt <= request.time + duration.value(301, 's');
+      // Claimed only by the claimPairing function (Admin SDK).
+      allow update: if false;
+      allow delete: if signedIn() && existing().createdBy == uid();
+    }
+  }
+}
