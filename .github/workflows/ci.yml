@@ -28,6 +28,8 @@ jobs:
       - run: pnpm typecheck
       - name: Core tests with coverage gate (≥ 90% lines)
         run: pnpm --filter @tandem/core test:coverage
+      - name: Runtime tests with coverage gate (≥ 90% lines)
+        run: pnpm --filter @tandem/runtime test:coverage
       - run: pnpm test
 
   rules:
