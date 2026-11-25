@@ -43,7 +43,8 @@ export function classifyWebError(e: unknown): ErrorCode {
   )
     return "MODEL_UNAVAILABLE";
   if (/safety|blocked|guardrail|harmful|refus/.test(msg)) return "GUARDRAIL";
-  if (/rate|429|resource[_ ]exhausted|quota/.test(msg)) return "QUOTA";
+  // Word boundaries: every AI Logic cloud error URL contains "generateContent", which a bare /rate/ matches.
+  if (/\brate[- ]?limit|\b429\b|resource[_ ]exhausted|\bquota\b/.test(msg)) return "QUOTA";
   if (/busy|too many requests/.test(msg)) return "BUSY";
   if (/network|offline|failed to fetch|fetch failed/.test(msg) || name === "NetworkError")
     return "OFFLINE";

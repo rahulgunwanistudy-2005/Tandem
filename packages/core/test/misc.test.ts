@@ -52,6 +52,15 @@ describe("errors", () => {
     [new Error("On-device model is not available"), "MODEL_UNAVAILABLE"],
     [new Error("Response was blocked due to SAFETY"), "GUARDRAIL"],
     [new Error("429 RESOURCE_EXHAUSTED"), "QUOTA"],
+    [new Error("Rate limit exceeded for this project"), "QUOTA"],
+    [new Error("Quota exceeded for aiplatform requests"), "QUOTA"],
+    // A real AI Logic error seen in local mode: the URL contains "generateContent" ("rate").
+    [
+      new Error(
+        "AI: Error fetching from https://firebasevertexai.googleapis.com/v1beta/projects/demo-tandem/models/gemini-3.5-flash-lite:generateContent: [400 ] API key not valid. Please pass a valid API key. (AI/fetch-error)",
+      ),
+      "UNKNOWN",
+    ],
     [new Error("service busy"), "BUSY"],
     [new Error("Failed to fetch"), "OFFLINE"],
     [Object.assign(new Error("?"), { name: "NetworkError" }), "OFFLINE"],
