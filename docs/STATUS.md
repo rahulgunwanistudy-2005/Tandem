@@ -1,6 +1,6 @@
 # STATUS
 
-_Last updated: 2026-11-25 (IST)._
+_Last updated: 2026-11-25 22:45 IST._
 
 ## Clock
 
@@ -46,20 +46,38 @@ Open questions for Rahul are in the "Blocked" section.
   tests**, mutation-checked.
 - ADRs 0001–0005, README skeleton (claims only what exists).
 
+## Done (Nov 25, evening)
+
+- `packages/runtime-web` (`@tandem/runtime`): `createTandem()` / `tandem.generate()` with
+  **verified fallback** — resolve the published rule for this model, check Prompt API availability
+  and the on-device token budget, retry `BUSY` with jittered backoff, reject any device-call answer
+  not labelled `on_device` (`INTEGRITY_CLOUD_ANSWER`), validate output against the feature schema,
+  escalate per the rule's mode. Policies from Remote Config (`tandem_policy_<featureId>`) with
+  real-time `onConfigUpdate` → `activate` → reload of only the updated keys; bad or older publishes
+  are rejected and the last good policy stays live. Content-free telemetry batched into
+  `projects/{pid}/telemetry_raw` (allowlist = schema = rules), flushed on page hide.
+  **74 tests, 100% lines, 95.9% branches**, including a property test (300 random scenarios) that
+  only schema-valid answers are returned, `ON_DEVICE` is reported only for a real device answer,
+  and every call emits exactly one schema-valid event containing no input text. That property test
+  caught a real mislabelling path (a cloud call reported as on-device), now fixed.
+- SDK behaviour read from the installed `@firebase/ai` 3.1.0 source and recorded in
+  `PLATFORM_NOTES.md` (lowercase enum values; `ONLY_ON_DEVICE` waits on a download that needs a
+  user gesture; new session per call; `systemInstruction` not forwarded to Chrome).
+- **Not yet verified on hardware**: no real Gemini Nano call has been made through the runtime.
+
 ## Next
 
-1. `packages/runtime-web` (`tandem.generate` with verified fallback, telemetry batching).
-2. `apps/console`: auth, projects, features/cases editor, Chrome runner with leasing, cloud reference,
+1. `apps/console`: auth, projects, features/cases editor, Chrome runner with leasing, cloud reference,
    judge + cache, live run matrix. Needs the Firebase project (see Blocked).
-3. `functions/`: `claimPairing`, `publishPolicy` (ETag), `reapLeases`.
-4. Android runtime + runner + Counter (needs Android SDK + device).
+2. `functions/`: `claimPairing`, `publishPolicy` (ETag), `reapLeases`.
+3. Android runtime + runner + Counter (needs Android SDK + device).
 
 ## Blocked (needs Rahul)
 
 1. Hackathon quota account — Sprint 3 request closes **Nov 25 10:00 AM PT = 23:30 IST today**.
 2. Firebase project with AI Logic (Gemini Developer API), App Check, Firestore, Auth (Anonymous +
    Google), Remote Config, Functions (Blaze), Hosting; budget alert.
-3. Disk space: free ≥ 25 GB so Chrome's Nano gate passes (and more if iOS is in scope).
+3. ~~Disk space~~ — **resolved**: 245 GB free after cleanup (Chrome's 22 GB gate and Xcode both fit).
 4. `chrome://on-device-internals` result on this Mac.
 5. Which Android phone (model) is on hand? Which iPhone (model, iOS version, Apple Intelligence on)?
 

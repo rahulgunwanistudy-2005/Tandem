@@ -40,9 +40,32 @@ const model = getGenerativeModel(ai, {
 });
 await model.initializeDeviceModel((p) => …);     // on a user gesture; p is 0..1
 const result = await model.generateContent(prompt);
-result.response.inferenceSource;                  // "ON_DEVICE" | "IN_CLOUD"  (SDK ≥ 12.5)
+result.response.inferenceSource;                  // "on_device" | "in_cloud" (lowercase values!)
 result.response.text();
 ```
+
+### Verified in the installed SDK (firebase 13.4.0 → @firebase/ai 3.1.0), 2026-11-25
+
+Read from `dist/ai-public.d.ts` and `dist/esm/index.esm.js`, not from memory:
+
+- Enum **values are lowercase**: `InferenceMode.ONLY_ON_DEVICE === "only_on_device"`,
+  `InferenceSource.ON_DEVICE === "on_device"`. Contracts use the uppercase names; the runtime maps
+  (`toBackend` in `packages/runtime-web/src/firebase.ts`).
+- `ONLY_ON_DEVICE` with availability `downloadable`/`downloading` makes the SDK **await the download
+  promise** before calling the model, and the download can only start from a user gesture. Tandem
+  therefore checks `LanguageModel.availability()` itself and skips the device unless it is
+  `available` (escalating with `MODEL_UNAVAILABLE` / `MODEL_DOWNLOADING`).
+- `ONLY_ON_DEVICE` + `unavailable` throws `AIError("api-not-enabled")`; a non-available model at call
+  time throws `AIError("unsupported", "...ONLY_ON_DEVICE, but an on-device model is not available.")`.
+- The Chrome adapter **creates a new session per call** (and destroys the previous one), so calls are
+  single-turn with no history leakage.
+- `systemInstruction` is **not** forwarded to Chrome; it must be an `initialPrompts` system message
+  in `onDeviceParams.createOptions`. Tandem sets both.
+- `LanguageModelCreateCoreOptions` = `{ expectedInputs?, expectedOutputs?, monitor? }`;
+  `LanguageModelCreateOptions` adds `{ signal?, initialPrompts? }`; `promptOptions = { responseConstraint?: object }`.
+- `AIError extends FirebaseError` with `code: AIErrorCode` (`"error" | "request-error" | "response-error"
+| "fetch-error" | "api-not-enabled" | "unsupported" | ...`).
+- `generationConfig.responseSchema: TypedSchema | SchemaRequest` (plain objects are accepted).
 
 - Enum output: cloud `responseMimeType: "text/x.enum"`, schema `Schema.enumString({ enum: [...] })`.
 - Not supported on-device: multi-turn chat, tools, non-JPEG/PNG images, file URLs.
@@ -107,8 +130,14 @@ registered in Console → Security → App Check → Apps → ⋮ → Manage deb
 
 ## Remote Config
 
-- Client APIs to verify from installed typings before use (web: `setCustomSignals`,
-  `onConfigUpdate`; Android: `setCustomSignals { put(...) }`, `addOnConfigUpdateListener`;
-  iOS: `setCustomSignals`, `addOnConfigUpdateListener`). Recorded here once confirmed.
+- **Web, verified** in `@firebase/remote-config` 0.10.0 typings: `getRemoteConfig(app)`,
+  `rc.settings.{minimumFetchIntervalMillis, fetchTimeoutMillis}`, `fetchAndActivate(rc)`,
+  `activate(rc)`, `getValue(rc, key).asString()`, `setCustomSignals(rc, { [k]: string | number | null })`,
+  `onConfigUpdate(rc, { next(update), error(e), complete() }) → Unsubscribe` where
+  `update.getUpdatedKeys(): Set<string>`. Real-time updates are **fetched but not active** until
+  `activate(rc)` is called — the runtime activates, then reloads only the updated keys.
+- Android (`setCustomSignals { put(...) }`, `addOnConfigUpdateListener`) and iOS
+  (`setCustomSignals`, `addOnConfigUpdateListener`): still to verify from installed artifacts.
+- Firestore (4.20.0): `writeBatch(db)`, `doc(db, ...path)`, `Timestamp.fromMillis(ms)` — verified.
 - Tandem resolves the policy JSON on the client by `modelId`, so it works without conditions;
   custom-signal conditions are only a canary optimisation.

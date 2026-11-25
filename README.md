@@ -55,6 +55,23 @@ then its holdout split with an overfit guard, then a non-inferiority check on ev
 crosses a threshold — the same statistic in both directions, so a few unlucky calls cannot flap a rule
 ([`rollback.ts`](packages/core/src/rollback.ts)).
 
+## Using it in a web app (implemented: [`packages/runtime-web`](packages/runtime-web/src/firebase.ts))
+
+```ts
+const tandem = createTandem({ app, features: ["triage"], telemetry: { firestore, projectId } });
+button.onclick = () => tandem.prepareDevice((p) => (bar.value = p)); // Nano download needs a gesture
+const r = await tandem.generate<Triage>("triage", ticketText);
+r.value; // parsed and schema-checked, never an unvalidated answer
+r.backend; // "ON_DEVICE" only if the device really produced it
+r.escalated; // the first choice failed; r.escalationReason says why
+```
+
+Each call follows the rule Tandem published for this exact model: try the device only if the Prompt
+API reports the model `available` and the prompt fits its context budget, reject device-call answers
+not labelled `on_device`, validate against the feature's schema, and escalate as the rule allows.
+New policies apply live through Remote Config real-time updates; a malformed or older publish is
+ignored and the last good policy stays in force.
+
 ## Privacy
 
 Runtime telemetry is content-free by construction: the JSON Schema
@@ -64,14 +81,15 @@ after 7 days. [ADR 0005](docs/adr/0005-no-content-in-telemetry.md).
 
 ## Repository
 
-| Path                                                  | What                                                                              | State                        |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------- |
-| [`contracts/`](contracts)                             | JSON Schemas for every data shape + golden fixtures                               | done                         |
-| [`packages/core/`](packages/core)                     | pure TS engine: checks, Wilson, compiler, repair gates, budgets, rollback, Pareto | done — 113 tests, 100% lines |
-| [`firebase/`](firebase)                               | Firestore rules (lease state machine, telemetry allowlist), indexes, RC template  | done — 19 emulator tests     |
-| `apps/console/`                                       | dashboard + Chrome on-device runner                                               | in progress                  |
-| `packages/runtime-web/`, `apps/android/`, `apps/ios/` | runtime SDKs with verified fallback                                               | in progress                  |
-| `functions/`                                          | publishPolicy, claimPairing, aggregateTelemetry, autoRollback, reapLeases         | in progress                  |
+| Path                                            | What                                                                              | State                        |
+| ----------------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------- |
+| [`contracts/`](contracts)                       | JSON Schemas for every data shape + golden fixtures                               | done                         |
+| [`packages/core/`](packages/core)               | pure TS engine: checks, Wilson, compiler, repair gates, budgets, rollback, Pareto | done — 113 tests, 100% lines |
+| [`firebase/`](firebase)                         | Firestore rules (lease state machine, telemetry allowlist), indexes, RC template  | done — 19 emulator tests     |
+| `apps/console/`                                 | dashboard + Chrome on-device runner                                               | in progress                  |
+| [`packages/runtime-web/`](packages/runtime-web) | `tandem.generate()` for web: verified fallback, RC real-time, telemetry           | done — 74 tests, 100% lines  |
+| `apps/android/`, `apps/ios/`                    | runtime SDKs with verified fallback                                               | in progress                  |
+| `functions/`                                    | publishPolicy, claimPairing, aggregateTelemetry, autoRollback, reapLeases         | in progress                  |
 
 Architecture decisions: [`docs/adr/`](docs/adr). Platform API notes (verified Nov 25, 2026):
 [`docs/PLATFORM_NOTES.md`](docs/PLATFORM_NOTES.md).
