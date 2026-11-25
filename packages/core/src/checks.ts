@@ -37,7 +37,13 @@ export function runDeterministicChecks(
 
   // 1. Integrity: a device target must be answered by the device. A silent cloud fallback is
   //    never an on-device pass. UNKNOWN is treated as a failure too: we only trust what we can see.
-  if (isDeviceTarget(target)) {
+  //    A runner error with no answer at all (model unavailable, BUSY, input too long) is not an
+  //    answer from anywhere, so it is an error, not an integrity failure.
+  const noAnswer =
+    result.outputText === undefined &&
+    result.errorCode !== undefined &&
+    result.errorCode !== "INTEGRITY_CLOUD_ANSWER";
+  if (isDeviceTarget(target) && !noAnswer) {
     const ok = result.backend === "ON_DEVICE";
     checks.push({
       id: "integrity",

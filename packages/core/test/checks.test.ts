@@ -49,6 +49,26 @@ describe("runDeterministicChecks", () => {
     ).toBe(true);
   });
 
+  it("treats a device error with no answer as an error, not an integrity failure", () => {
+    const { outputText: _drop, ...noText } = ok;
+    const d = runDeterministicChecks(feature, kase, "chrome:158", {
+      ...noText,
+      backend: "UNKNOWN",
+      errorCode: "MODEL_UNAVAILABLE",
+    });
+    expect(d).toMatchObject({ pass: false, integrityFailure: false });
+    expect(d.checks).toEqual([{ id: "error", pass: false, detail: "MODEL_UNAVAILABLE" }]);
+    expect(verdictFor(d, {}, undefined, { errorCode: "MODEL_UNAVAILABLE" })).toBe("error");
+    // ...but an answer that arrives with an error code is still checked for integrity.
+    expect(
+      runDeterministicChecks(feature, kase, "chrome:158", {
+        ...ok,
+        backend: "IN_CLOUD",
+        errorCode: "SCHEMA_INVALID",
+      }).integrityFailure,
+    ).toBe(true);
+  });
+
   it("does not run integrity on the cloud reference", () => {
     const d = runDeterministicChecks(feature, kase, "cloud:gemini-3.5-flash-lite", {
       ...ok,
