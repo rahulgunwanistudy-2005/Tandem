@@ -20,10 +20,30 @@ export interface FamilyBudget {
 }
 
 export const BUDGETS: Record<ModelFamily, FamilyBudget> = {
-  "chrome-nano": { totalTokens: 9216, maxOutputTokens: 1024, charsPerToken: 3, source: "Chrome Prompt API session quota" },
-  "android-nano": { totalTokens: 4000, maxOutputTokens: 256, charsPerToken: 3, source: "Firebase AI Logic Android docs" },
-  "apple-fm": { totalTokens: 4096, maxOutputTokens: 1024, charsPerToken: 3, source: "Firebase AI Logic iOS docs (shared in+out)" },
-  "gemini-cloud": { totalTokens: 1_000_000, maxOutputTokens: 8192, charsPerToken: 4, source: "Gemini cloud models" },
+  "chrome-nano": {
+    totalTokens: 9216,
+    maxOutputTokens: 1024,
+    charsPerToken: 3,
+    source: "Chrome Prompt API session quota",
+  },
+  "android-nano": {
+    totalTokens: 4000,
+    maxOutputTokens: 256,
+    charsPerToken: 3,
+    source: "Firebase AI Logic Android docs",
+  },
+  "apple-fm": {
+    totalTokens: 4096,
+    maxOutputTokens: 1024,
+    charsPerToken: 3,
+    source: "Firebase AI Logic iOS docs (shared in+out)",
+  },
+  "gemini-cloud": {
+    totalTokens: 1_000_000,
+    maxOutputTokens: 8192,
+    charsPerToken: 4,
+    source: "Gemini cloud models",
+  },
 };
 
 export const SAFETY = 0.85;
@@ -52,13 +72,23 @@ export interface Calibration {
   acceptedAtChars?: number;
 }
 
-export function calibrate(prev: Calibration, observation: { inputChars: number; rejected: boolean }): Calibration {
+export function calibrate(
+  prev: Calibration,
+  observation: { inputChars: number; rejected: boolean },
+): Calibration {
   if (observation.rejected) {
     const r = prev.rejectedAtChars;
-    return { ...prev, rejectedAtChars: r === undefined ? observation.inputChars : Math.min(r, observation.inputChars) };
+    return {
+      ...prev,
+      rejectedAtChars:
+        r === undefined ? observation.inputChars : Math.min(r, observation.inputChars),
+    };
   }
   const a = prev.acceptedAtChars;
-  return { ...prev, acceptedAtChars: a === undefined ? observation.inputChars : Math.max(a, observation.inputChars) };
+  return {
+    ...prev,
+    acceptedAtChars: a === undefined ? observation.inputChars : Math.max(a, observation.inputChars),
+  };
 }
 
 export interface BudgetCheck {
@@ -87,8 +117,18 @@ export function checkBudget(
   const limit = Math.floor(b.totalTokens * SAFETY);
   const usage = (est + out) / limit;
   const chars = [...promptText].length;
-  if (calibration.rejectedAtChars !== undefined && chars >= Math.floor(calibration.rejectedAtChars * SAFETY)) {
-    return { fits: false, estimatedInputTokens: est, reservedOutputTokens: out, limitTokens: limit, usage, reason: `a device rejected ${calibration.rejectedAtChars} chars` };
+  if (
+    calibration.rejectedAtChars !== undefined &&
+    chars >= Math.floor(calibration.rejectedAtChars * SAFETY)
+  ) {
+    return {
+      fits: false,
+      estimatedInputTokens: est,
+      reservedOutputTokens: out,
+      limitTokens: limit,
+      usage,
+      reason: `a device rejected ${calibration.rejectedAtChars} chars`,
+    };
   }
   const fits = usage <= 1;
   return {

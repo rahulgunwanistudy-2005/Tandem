@@ -12,7 +12,8 @@ export function stratifiedSplit<T extends { id: string }>(
   holdoutShare = 0.3,
   seed = "tandem",
 ): Map<string, Split> {
-  if (!(holdoutShare >= 0 && holdoutShare <= 1)) throw new RangeError("holdoutShare must be in [0, 1]");
+  if (!(holdoutShare >= 0 && holdoutShare <= 1))
+    throw new RangeError("holdoutShare must be in [0, 1]");
   const groups = new Map<string, T[]>();
   for (const it of items) {
     const k = stratum(it);
@@ -22,7 +23,9 @@ export function stratifiedSplit<T extends { id: string }>(
   }
   const out = new Map<string, Split>();
   for (const g of groups.values()) {
-    const ordered = [...g].sort((a, b) => fnv1a(seed + a.id) - fnv1a(seed + b.id) || a.id.localeCompare(b.id));
+    const ordered = [...g].sort(
+      (a, b) => fnv1a(seed + a.id) - fnv1a(seed + b.id) || a.id.localeCompare(b.id),
+    );
     const h = Math.round(ordered.length * holdoutShare);
     ordered.forEach((it, i) => out.set(it.id, i < h ? "holdout" : "train"));
   }

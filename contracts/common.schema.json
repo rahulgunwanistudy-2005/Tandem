@@ -10,12 +10,22 @@
       "pattern": "^(chrome|android|ios|cloud):([A-Za-z0-9._-]+|\\*)$"
     },
     "platform": { "enum": ["chrome", "android", "ios", "cloud"] },
-    "inferenceMode": { "enum": ["PREFER_ON_DEVICE", "ONLY_ON_DEVICE", "PREFER_IN_CLOUD", "ONLY_IN_CLOUD"] },
+    "inferenceMode": {
+      "enum": ["PREFER_ON_DEVICE", "ONLY_ON_DEVICE", "PREFER_IN_CLOUD", "ONLY_IN_CLOUD"]
+    },
     "backend": { "enum": ["ON_DEVICE", "IN_CLOUD", "UNKNOWN"] },
     "errorCode": {
       "enum": [
-        "MODEL_UNAVAILABLE", "MODEL_DOWNLOADING", "BUSY", "QUOTA", "GUARDRAIL", "SCHEMA_INVALID",
-        "INPUT_TOO_LONG", "INTEGRITY_CLOUD_ANSWER", "OFFLINE", "UNKNOWN"
+        "MODEL_UNAVAILABLE",
+        "MODEL_DOWNLOADING",
+        "BUSY",
+        "QUOTA",
+        "GUARDRAIL",
+        "SCHEMA_INVALID",
+        "INPUT_TOO_LONG",
+        "INTEGRITY_CLOUD_ANSWER",
+        "OFFLINE",
+        "UNKNOWN"
       ]
     },
     "split": { "enum": ["train", "holdout"] },

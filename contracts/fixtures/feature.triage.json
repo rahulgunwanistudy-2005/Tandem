@@ -21,11 +21,7 @@
       },
       "urgency": {
         "type": "string",
-        "enum": [
-          "low",
-          "normal",
-          "high"
-        ]
+        "enum": ["low", "normal", "high"]
       },
       "orderId": {
         "type": "string",
@@ -33,23 +29,10 @@
       },
       "language": {
         "type": "string",
-        "enum": [
-          "en",
-          "es",
-          "fr",
-          "de",
-          "hi",
-          "pt",
-          "other"
-        ]
+        "enum": ["en", "es", "fr", "de", "hi", "pt", "other"]
       }
     },
-    "required": [
-      "intent",
-      "urgency",
-      "orderId",
-      "language"
-    ]
+    "required": ["intent", "urgency", "orderId", "language"]
   },
   "genConfig": {
     "temperature": 0.2,

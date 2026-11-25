@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import fc from "fast-check";
-import { flakiness, newcombeDifference, percentile, wilsonInterval, wilsonLowerBound } from "../src/stats.js";
+import {
+  flakiness,
+  newcombeDifference,
+  percentile,
+  wilsonInterval,
+  wilsonLowerBound,
+} from "../src/stats.js";
 
 describe("wilsonInterval", () => {
   // Reference values: Newcombe (1998), Statistics in Medicine 17:857–872, Table I, method 3.
@@ -40,7 +46,9 @@ describe("wilsonInterval", () => {
     expect(wilsonLowerBound(20, 20)).toBeLessThan(0.85);
   });
 
-  const counts = fc.integer({ min: 1, max: 2000 }).chain((n) => fc.tuple(fc.integer({ min: 0, max: n }), fc.constant(n)));
+  const counts = fc
+    .integer({ min: 1, max: 2000 })
+    .chain((n) => fc.tuple(fc.integer({ min: 0, max: n }), fc.constant(n)));
 
   it("property: 0 ≤ lower ≤ p̂ ≤ upper ≤ 1", () => {
     fc.assert(
@@ -54,22 +62,34 @@ describe("wilsonInterval", () => {
 
   it("property: lower bound is monotone in successes", () => {
     fc.assert(
-      fc.property(counts, ([s, n]) => s === n || wilsonLowerBound(s, n) <= wilsonLowerBound(s + 1, n) + 1e-12),
+      fc.property(
+        counts,
+        ([s, n]) => s === n || wilsonLowerBound(s, n) <= wilsonLowerBound(s + 1, n) + 1e-12,
+      ),
     );
   });
 
   it("property: more evidence at the same rate tightens the lower bound", () => {
     fc.assert(
-      fc.property(fc.integer({ min: 1, max: 200 }), fc.integer({ min: 1, max: 200 }), fc.integer({ min: 2, max: 10 }), (a, b, k) => {
-        const n = a + b;
-        return wilsonLowerBound(a, n) <= wilsonLowerBound(a * k, n * k) + 1e-12;
-      }),
+      fc.property(
+        fc.integer({ min: 1, max: 200 }),
+        fc.integer({ min: 1, max: 200 }),
+        fc.integer({ min: 2, max: 10 }),
+        (a, b, k) => {
+          const n = a + b;
+          return wilsonLowerBound(a, n) <= wilsonLowerBound(a * k, n * k) + 1e-12;
+        },
+      ),
     );
   });
 
   it("property: symmetric — lower(s, n) = 1 − upper(n − s, n)", () => {
     fc.assert(
-      fc.property(counts, ([s, n]) => Math.abs(wilsonInterval(s, n).lower - (1 - wilsonInterval(n - s, n).upper)) < 1e-9),
+      fc.property(
+        counts,
+        ([s, n]) =>
+          Math.abs(wilsonInterval(s, n).lower - (1 - wilsonInterval(n - s, n).upper)) < 1e-9,
+      ),
     );
   });
 });
@@ -86,7 +106,9 @@ describe("newcombeDifference", () => {
   });
 
   it("property: contains the observed difference and stays in [−1, 1]", () => {
-    const arm = fc.integer({ min: 1, max: 400 }).chain((n) => fc.tuple(fc.integer({ min: 0, max: n }), fc.constant(n)));
+    const arm = fc
+      .integer({ min: 1, max: 400 })
+      .chain((n) => fc.tuple(fc.integer({ min: 0, max: n }), fc.constant(n)));
     fc.assert(
       fc.property(arm, arm, ([s1, n1], [s2, n2]) => {
         const d = newcombeDifference(s1, n1, s2, n2);
@@ -97,7 +119,9 @@ describe("newcombeDifference", () => {
   });
 
   it("property: antisymmetric when the arms are swapped", () => {
-    const arm = fc.integer({ min: 1, max: 300 }).chain((n) => fc.tuple(fc.integer({ min: 0, max: n }), fc.constant(n)));
+    const arm = fc
+      .integer({ min: 1, max: 300 })
+      .chain((n) => fc.tuple(fc.integer({ min: 0, max: n }), fc.constant(n)));
     fc.assert(
       fc.property(arm, arm, ([s1, n1], [s2, n2]) => {
         const a = newcombeDifference(s1, n1, s2, n2);
@@ -128,11 +152,15 @@ describe("percentile", () => {
   });
   it("property: result is a member and is monotone in q", () => {
     fc.assert(
-      fc.property(fc.array(fc.double({ min: 0, max: 1e5, noNaN: true }), { minLength: 1, maxLength: 200 }), fc.integer({ min: 1, max: 99 }), (v, q) => {
-        const a = percentile(v, q) as number;
-        const b = percentile(v, q + 1) as number;
-        return v.includes(a) && a <= b;
-      }),
+      fc.property(
+        fc.array(fc.double({ min: 0, max: 1e5, noNaN: true }), { minLength: 1, maxLength: 200 }),
+        fc.integer({ min: 1, max: 99 }),
+        (v, q) => {
+          const a = percentile(v, q) as number;
+          const b = percentile(v, q + 1) as number;
+          return v.includes(a) && a <= b;
+        },
+      ),
     );
   });
 });

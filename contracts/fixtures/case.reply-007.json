@@ -26,8 +26,5 @@
   ],
   "rubric": "Reply is in Spanish, apologises once, explains how to exchange the size, and does not promise a refund or a delivery date.",
   "split": "holdout",
-  "tags": [
-    "es",
-    "exchange"
-  ]
+  "tags": ["es", "exchange"]
 }

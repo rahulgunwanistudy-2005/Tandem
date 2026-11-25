@@ -45,7 +45,8 @@ function walk(s: OutputSchema, v: unknown, path: string, issues: SchemaIssue[]):
       const obj = v as Record<string, unknown>;
       const props = s.properties ?? {};
       for (const key of s.required ?? []) {
-        if (!Object.prototype.hasOwnProperty.call(obj, key)) push(issues, join(path, key), "missing required property");
+        if (!Object.prototype.hasOwnProperty.call(obj, key))
+          push(issues, join(path, key), "missing required property");
       }
       for (const [key, child] of Object.entries(obj)) {
         const ps = props[key];
@@ -56,25 +57,34 @@ function walk(s: OutputSchema, v: unknown, path: string, issues: SchemaIssue[]):
     }
     case "array": {
       if (!Array.isArray(v)) return push(issues, path, `expected array, got ${typeOf(v)}`);
-      if (s.minItems !== undefined && v.length < s.minItems) push(issues, path, `expected ≥ ${s.minItems} items`);
-      if (s.maxItems !== undefined && v.length > s.maxItems) push(issues, path, `expected ≤ ${s.maxItems} items`);
-      if (s.items) v.forEach((item, i) => walk(s.items as OutputSchema, item, `${path}[${i}]`, issues));
+      if (s.minItems !== undefined && v.length < s.minItems)
+        push(issues, path, `expected ≥ ${s.minItems} items`);
+      if (s.maxItems !== undefined && v.length > s.maxItems)
+        push(issues, path, `expected ≤ ${s.maxItems} items`);
+      if (s.items)
+        v.forEach((item, i) => walk(s.items as OutputSchema, item, `${path}[${i}]`, issues));
       return;
     }
     case "string": {
       if (typeof v !== "string") return push(issues, path, `expected string, got ${typeOf(v)}`);
-      if (s.enum && !s.enum.includes(v)) push(issues, path, `"${truncate(v)}" is not one of ${s.enum.join("|")}`);
+      if (s.enum && !s.enum.includes(v))
+        push(issues, path, `"${truncate(v)}" is not one of ${s.enum.join("|")}`);
       const len = [...v].length;
-      if (s.minLength !== undefined && len < s.minLength) push(issues, path, `shorter than ${s.minLength}`);
-      if (s.maxLength !== undefined && len > s.maxLength) push(issues, path, `longer than ${s.maxLength}`);
+      if (s.minLength !== undefined && len < s.minLength)
+        push(issues, path, `shorter than ${s.minLength}`);
+      if (s.maxLength !== undefined && len > s.maxLength)
+        push(issues, path, `longer than ${s.maxLength}`);
       return;
     }
     case "number":
     case "integer": {
-      if (typeof v !== "number" || !Number.isFinite(v)) return push(issues, path, `expected ${s.type}, got ${typeOf(v)}`);
+      if (typeof v !== "number" || !Number.isFinite(v))
+        return push(issues, path, `expected ${s.type}, got ${typeOf(v)}`);
       if (s.type === "integer" && !Number.isInteger(v)) push(issues, path, "expected integer");
-      if (s.minimum !== undefined && v < s.minimum) push(issues, path, `below minimum ${s.minimum}`);
-      if (s.maximum !== undefined && v > s.maximum) push(issues, path, `above maximum ${s.maximum}`);
+      if (s.minimum !== undefined && v < s.minimum)
+        push(issues, path, `below minimum ${s.minimum}`);
+      if (s.maximum !== undefined && v > s.maximum)
+        push(issues, path, `above maximum ${s.maximum}`);
       return;
     }
     case "boolean": {
@@ -104,7 +114,9 @@ export function parseOutput(kind: "json" | "enum" | "text", raw: string): ParseO
   const trimmed = stripFence(raw.trim());
   if (kind === "enum") {
     const unquoted = trimmed.replace(/^"(.*)"$/s, "$1").trim();
-    return unquoted.length > 0 ? { ok: true, value: unquoted } : { ok: false, error: "empty enum output" };
+    return unquoted.length > 0
+      ? { ok: true, value: unquoted }
+      : { ok: false, error: "empty enum output" };
   }
   try {
     return { ok: true, value: JSON.parse(trimmed) as unknown };

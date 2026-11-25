@@ -26,8 +26,5 @@
     }
   ],
   "split": "train",
-  "tags": [
-    "damage",
-    "has-order-id"
-  ]
+  "tags": ["damage", "has-order-id"]
 }

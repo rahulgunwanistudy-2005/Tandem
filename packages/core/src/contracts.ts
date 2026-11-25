@@ -7,7 +7,8 @@
 export type Platform = "chrome" | "android" | "ios" | "cloud";
 /** `<platform>:<model>`; a trailing `*` is a platform wildcard. */
 export type ModelId = `${Platform}:${string}`;
-export type InferenceMode = "PREFER_ON_DEVICE" | "ONLY_ON_DEVICE" | "PREFER_IN_CLOUD" | "ONLY_IN_CLOUD";
+export type InferenceMode =
+  "PREFER_ON_DEVICE" | "ONLY_ON_DEVICE" | "PREFER_IN_CLOUD" | "ONLY_IN_CLOUD";
 export type Backend = "ON_DEVICE" | "IN_CLOUD" | "UNKNOWN";
 export type Split = "train" | "holdout";
 
@@ -75,7 +76,13 @@ export type Assert =
   | { kind: "not_null"; path: string }
   | { kind: "regex"; path: string; pattern: string; flags?: string; negate?: boolean }
   | { kind: "length"; path: string; min?: number; max?: number; unit?: "chars" | "words" }
-  | { kind: "contains"; path: string; substring: string; caseSensitive?: boolean; negate?: boolean };
+  | {
+      kind: "contains";
+      path: string;
+      substring: string;
+      caseSensitive?: boolean;
+      negate?: boolean;
+    };
 
 export interface Case {
   id: string;

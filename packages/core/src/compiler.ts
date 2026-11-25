@@ -1,4 +1,11 @@
-import type { ModelId, Policy, PolicyRule, PolicyVariant, RuleReason, Feature } from "./contracts.js";
+import type {
+  ModelId,
+  Policy,
+  PolicyRule,
+  PolicyVariant,
+  RuleReason,
+  Feature,
+} from "./contracts.js";
 import type { Evidence } from "./evidence.js";
 import { isDeviceTarget } from "./models.js";
 
@@ -39,7 +46,10 @@ export interface RuleDecision {
   flaky: boolean;
 }
 
-export function decide(e: Evidence, s: CompilerSettings): Omit<RuleDecision, "target" | "variantId" | "evidence"> {
+export function decide(
+  e: Evidence,
+  s: CompilerSettings,
+): Omit<RuleDecision, "target" | "variantId" | "evidence"> {
   const flaky = e.flakiness > s.flakinessWarn;
   if (e.n < s.minN) return { routeToDevice: false, reason: "INSUFFICIENT_EVIDENCE", flaky };
   if (e.integrityFailures > 0) return { routeToDevice: false, reason: "INTEGRITY_FAILURES", flaky };
@@ -79,7 +89,12 @@ export function decideAll(evidence: readonly Evidence[], s: CompilerSettings): R
   const best = new Map<ModelId, RuleDecision>();
   for (const e of evidence) {
     if (!isDeviceTarget(e.target)) continue;
-    const d: RuleDecision = { target: e.target, variantId: e.variantId, evidence: e, ...decide(e, s) };
+    const d: RuleDecision = {
+      target: e.target,
+      variantId: e.variantId,
+      evidence: e,
+      ...decide(e, s),
+    };
     const cur = best.get(e.target);
     if (!cur || better(d, cur)) best.set(e.target, d);
   }
@@ -110,7 +125,8 @@ export function compilePolicy(input: CompileInput): Policy {
   const rules: Record<string, PolicyRule> = {};
   const used = new Set<string>([input.defaultVariantId]);
   for (const d of decideAll(input.evidence, s)) {
-    if (!input.variants[d.variantId]) throw new Error(`evidence references unknown variant "${d.variantId}"`);
+    if (!input.variants[d.variantId])
+      throw new Error(`evidence references unknown variant "${d.variantId}"`);
     // A cloud-routed model runs the default (human) variant in the cloud: repaired variants are
     // tuned for a device model, and the cloud reference was measured on the default.
     const variantId = d.routeToDevice ? d.variantId : input.defaultVariantId;

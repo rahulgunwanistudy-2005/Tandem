@@ -42,7 +42,17 @@ describe("path", () => {
 
 describe("validateOutput", () => {
   it("accepts a valid object", () => {
-    expect(validateOutput(triage, { intent: "other", urgency: "low", orderId: null, tags: ["a"], score: 3, ratio: 0.5, ok: true })).toEqual([]);
+    expect(
+      validateOutput(triage, {
+        intent: "other",
+        urgency: "low",
+        orderId: null,
+        tags: ["a"],
+        score: 3,
+        ratio: 0.5,
+        ok: true,
+      }),
+    ).toEqual([]);
   });
   it("reports every class of violation", () => {
     const issues = validateOutput(triage, {
@@ -58,7 +68,7 @@ describe("validateOutput", () => {
     expect(msgs).toEqual(
       expect.arrayContaining([
         expect.stringContaining("urgency: missing required"),
-        expect.stringContaining("intent: \"refund\" is not one of"),
+        expect.stringContaining('intent: "refund" is not one of'),
         expect.stringContaining("orderId: expected string"),
         expect.stringContaining("extra: unexpected property"),
         expect.stringContaining("tags: expected ≤ 2 items"),
@@ -80,11 +90,18 @@ describe("validateOutput", () => {
     expect(validateOutput({ type: "number", maximum: 1 }, 2)[0]?.message).toContain("above");
     expect(validateOutput({ type: "number" }, Number.NaN)[0]?.message).toContain("expected number");
     expect(validateOutput({ type: "string", enum: ["a"] }, "b")).toHaveLength(1);
-    expect(validateOutput({ type: "string", enum: ["a"] }, "a".repeat(50) )[0]?.message).toContain("…");
+    expect(validateOutput({ type: "string", enum: ["a"] }, "a".repeat(50))[0]?.message).toContain(
+      "…",
+    );
   });
   it("caps the number of issues", () => {
     const s: OutputSchema = { type: "array", items: { type: "string" } };
-    expect(validateOutput(s, Array.from({ length: 100 }, () => 1))).toHaveLength(20);
+    expect(
+      validateOutput(
+        s,
+        Array.from({ length: 100 }, () => 1),
+      ),
+    ).toHaveLength(20);
   });
   it("property: values generated from the schema always validate", () => {
     const arb = fc.record({
@@ -112,39 +129,81 @@ describe("parseOutput", () => {
 });
 
 describe("evaluateAssert", () => {
-  const out = { intent: "damaged_item", orderId: " CT-1 ", n: 3, reply: "Hola, lo siento mucho por el pedido CT-9.", nil: null };
+  const out = {
+    intent: "damaged_item",
+    orderId: " CT-1 ",
+    n: 3,
+    reply: "Hola, lo siento mucho por el pedido CT-9.",
+    nil: null,
+  };
   it("equals / one_of / not_null", () => {
-    expect(evaluateAssert({ kind: "equals", path: "intent", value: "damaged_item" }, out).pass).toBe(true);
+    expect(
+      evaluateAssert({ kind: "equals", path: "intent", value: "damaged_item" }, out).pass,
+    ).toBe(true);
     expect(evaluateAssert({ kind: "equals", path: "orderId", value: "CT-1" }, out).pass).toBe(true);
     expect(evaluateAssert({ kind: "equals", path: "n", value: 3 }, out).pass).toBe(true);
     const miss = evaluateAssert({ kind: "equals", path: "missing", value: "x" }, out, 4);
-    expect(miss).toMatchObject({ id: "assert:4:equals", pass: false, detail: expect.stringContaining("(missing)") });
-    expect(evaluateAssert({ kind: "one_of", path: "intent", values: ["a", "damaged_item"] }, out).pass).toBe(true);
+    expect(miss).toMatchObject({
+      id: "assert:4:equals",
+      pass: false,
+      detail: expect.stringContaining("(missing)"),
+    });
+    expect(
+      evaluateAssert({ kind: "one_of", path: "intent", values: ["a", "damaged_item"] }, out).pass,
+    ).toBe(true);
     expect(evaluateAssert({ kind: "one_of", path: "intent", values: ["a"] }, out).pass).toBe(false);
     expect(evaluateAssert({ kind: "not_null", path: "nil" }, out).pass).toBe(false);
     expect(evaluateAssert({ kind: "not_null", path: "intent" }, out).pass).toBe(true);
   });
   it("regex with flags, negation and bad patterns", () => {
-    expect(evaluateAssert({ kind: "regex", path: "reply", pattern: "^hola", flags: "i" }, out).pass).toBe(true);
-    expect(evaluateAssert({ kind: "regex", path: "reply", pattern: "refund", negate: true }, out).pass).toBe(true);
-    expect(evaluateAssert({ kind: "regex", path: "reply", pattern: "lo siento", negate: true }, out).pass).toBe(false);
-    expect(evaluateAssert({ kind: "regex", path: "reply", pattern: "^x" }, out).detail).toContain("must match");
-    expect(evaluateAssert({ kind: "regex", path: "reply", pattern: "(" }, out).detail).toContain("bad pattern");
+    expect(
+      evaluateAssert({ kind: "regex", path: "reply", pattern: "^hola", flags: "i" }, out).pass,
+    ).toBe(true);
+    expect(
+      evaluateAssert({ kind: "regex", path: "reply", pattern: "refund", negate: true }, out).pass,
+    ).toBe(true);
+    expect(
+      evaluateAssert({ kind: "regex", path: "reply", pattern: "lo siento", negate: true }, out)
+        .pass,
+    ).toBe(false);
+    expect(evaluateAssert({ kind: "regex", path: "reply", pattern: "^x" }, out).detail).toContain(
+      "must match",
+    );
+    expect(evaluateAssert({ kind: "regex", path: "reply", pattern: "(" }, out).detail).toContain(
+      "bad pattern",
+    );
     expect(evaluateAssert({ kind: "regex", path: "n", pattern: "3" }, out).pass).toBe(false);
   });
   it("length in chars and words", () => {
-    expect(evaluateAssert({ kind: "length", path: "reply", min: 10, max: 100 }, out).pass).toBe(true);
-    expect(evaluateAssert({ kind: "length", path: "reply", max: 5, unit: "words" }, out).pass).toBe(false);
+    expect(evaluateAssert({ kind: "length", path: "reply", min: 10, max: 100 }, out).pass).toBe(
+      true,
+    );
+    expect(evaluateAssert({ kind: "length", path: "reply", max: 5, unit: "words" }, out).pass).toBe(
+      false,
+    );
     expect(evaluateAssert({ kind: "length", path: "reply", min: 1 }, out).pass).toBe(true);
     expect(evaluateAssert({ kind: "length", path: "n", min: 1 }, out).pass).toBe(false);
     expect(countWords("  ")).toBe(0);
     expect(countWords("a  b\nc")).toBe(3);
   });
   it("contains with case handling and negation", () => {
-    expect(evaluateAssert({ kind: "contains", path: "reply", substring: "ct-9" }, out).pass).toBe(true);
-    expect(evaluateAssert({ kind: "contains", path: "reply", substring: "ct-9", caseSensitive: true }, out).pass).toBe(false);
-    expect(evaluateAssert({ kind: "contains", path: "reply", substring: "refund", negate: true }, out).pass).toBe(true);
-    expect(evaluateAssert({ kind: "contains", path: "reply", substring: "Hola", negate: true }, out).detail).toContain("must not");
+    expect(evaluateAssert({ kind: "contains", path: "reply", substring: "ct-9" }, out).pass).toBe(
+      true,
+    );
+    expect(
+      evaluateAssert(
+        { kind: "contains", path: "reply", substring: "ct-9", caseSensitive: true },
+        out,
+      ).pass,
+    ).toBe(false);
+    expect(
+      evaluateAssert({ kind: "contains", path: "reply", substring: "refund", negate: true }, out)
+        .pass,
+    ).toBe(true);
+    expect(
+      evaluateAssert({ kind: "contains", path: "reply", substring: "Hola", negate: true }, out)
+        .detail,
+    ).toContain("must not");
     expect(evaluateAssert({ kind: "contains", path: "n", substring: "3" }, out).pass).toBe(false);
   });
   it("never throws on malformed paths", () => {

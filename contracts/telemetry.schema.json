@@ -4,7 +4,20 @@
   "title": "Telemetry event",
   "description": "One runtime inference. Content-free by construction: no prompt, input or output text is allowed (additionalProperties: false).",
   "type": "object",
-  "required": ["eventId", "featureId", "modelId", "platform", "policyVersion", "mode", "backend", "latencyMs", "validation", "escalated", "ts", "sdk"],
+  "required": [
+    "eventId",
+    "featureId",
+    "modelId",
+    "platform",
+    "policyVersion",
+    "mode",
+    "backend",
+    "latencyMs",
+    "validation",
+    "escalated",
+    "ts",
+    "sdk"
+  ],
   "additionalProperties": false,
   "properties": {
     "eventId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{8,64}$" },

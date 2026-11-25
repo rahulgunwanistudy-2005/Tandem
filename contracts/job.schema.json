@@ -25,11 +25,19 @@
   },
   "$defs": {
     "check": {
-      "type": "object", "additionalProperties": false, "required": ["id", "pass"],
-      "properties": { "id": { "type": "string" }, "pass": { "type": "boolean" }, "detail": { "type": "string", "maxLength": 500 } }
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "pass"],
+      "properties": {
+        "id": { "type": "string" },
+        "pass": { "type": "boolean" },
+        "detail": { "type": "string", "maxLength": 500 }
+      }
     },
     "judge": {
-      "type": "object", "additionalProperties": false, "required": ["pass", "score", "reason", "cacheKey"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pass", "score", "reason", "cacheKey"],
       "properties": {
         "pass": { "type": "boolean" },
         "score": { "type": "number", "minimum": 0, "maximum": 1 },

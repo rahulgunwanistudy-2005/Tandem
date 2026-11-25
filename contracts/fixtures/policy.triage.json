@@ -4,9 +4,7 @@
   "version": 3,
   "compiledAt": "2026-11-25T10:00:00.000Z",
   "tau": 0.85,
-  "sourceRunIds": [
-    "r1"
-  ],
+  "sourceRunIds": ["r1"],
   "default": {
     "mode": "ONLY_IN_CLOUD",
     "variantId": "v1",
@@ -75,11 +73,7 @@
       },
       "urgency": {
         "type": "string",
-        "enum": [
-          "low",
-          "normal",
-          "high"
-        ]
+        "enum": ["low", "normal", "high"]
       },
       "orderId": {
         "type": "string",
@@ -87,23 +81,10 @@
       },
       "language": {
         "type": "string",
-        "enum": [
-          "en",
-          "es",
-          "fr",
-          "de",
-          "hi",
-          "pt",
-          "other"
-        ]
+        "enum": ["en", "es", "fr", "de", "hi", "pt", "other"]
       }
     },
-    "required": [
-      "intent",
-      "urgency",
-      "orderId",
-      "language"
-    ]
+    "required": ["intent", "urgency", "orderId", "language"]
   },
   "outputKind": "json",
   "cloudModel": "gemini-3.5-flash-lite"

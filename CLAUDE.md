@@ -22,7 +22,7 @@ Entry for Google's #BuildHybridAI 2026 (Firebase AI Logic hybrid inference). Dea
    after every working slice. **Never add AI attribution lines** (no `Co-Authored-By`, no
    "Generated with" footers) to commits or PR descriptions — this is the repo owner's explicit rule.
 6. Update `docs/STATUS.md` at the end of each work block: done / next / blocked / decisions.
-7. Before marking anything done ask: can a judge *see* it in the video or README in under 10 seconds?
+7. Before marking anything done ask: can a judge _see_ it in the video or README in under 10 seconds?
 
 ## Repo map
 

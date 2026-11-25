@@ -24,6 +24,7 @@ export function resolveRule(policy: Policy, modelId: ModelId): ResolvedRule {
     if (variant) return { rule, variant, matchedBy };
   }
   const variant = policy.variants[policy.default.variantId];
-  if (!variant) throw new Error(`policy ${policy.featureId}@${policy.version} has no default variant`);
+  if (!variant)
+    throw new Error(`policy ${policy.featureId}@${policy.version} has no default variant`);
   return { rule: policy.default, variant, matchedBy: "default" };
 }

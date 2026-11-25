@@ -1,7 +1,19 @@
 {
   "parameters": {
-    "tandem_judge_model": { "defaultValue": { "value": "gemini-3.8-flash" }, "valueType": "STRING", "description": "Cloud model used by the console judge (ONLY_IN_CLOUD)." },
-    "tandem_repair_model": { "defaultValue": { "value": "gemini-4-hydrogen" }, "valueType": "STRING", "description": "Cloud model used to propose repaired prompt variants." },
-    "tandem_reference_model": { "defaultValue": { "value": "gemini-3.5-flash-lite" }, "valueType": "STRING", "description": "Cloud reference target for runs." }
+    "tandem_judge_model": {
+      "defaultValue": { "value": "gemini-3.8-flash" },
+      "valueType": "STRING",
+      "description": "Cloud model used by the console judge (ONLY_IN_CLOUD)."
+    },
+    "tandem_repair_model": {
+      "defaultValue": { "value": "gemini-4-hydrogen" },
+      "valueType": "STRING",
+      "description": "Cloud model used to propose repaired prompt variants."
+    },
+    "tandem_reference_model": {
+      "defaultValue": { "value": "gemini-3.5-flash-lite" },
+      "valueType": "STRING",
+      "description": "Cloud reference target for runs."
+    }
   }
 }

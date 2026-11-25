@@ -37,6 +37,11 @@ export function variantHash(systemInstruction: string, promptTemplate: string): 
  * Judge cache key. `output` is the parsed output when parsing succeeded (so whitespace and key
  * order differences hit the cache), otherwise the raw text.
  */
-export function judgeCacheKey(featureId: string, variantId: string, caseId: string, output: unknown): Promise<string> {
+export function judgeCacheKey(
+  featureId: string,
+  variantId: string,
+  caseId: string,
+  output: unknown,
+): Promise<string> {
   return sha256Hex(canonicalJson([featureId, variantId, caseId, output]));
 }

@@ -57,7 +57,9 @@ export function aggregateEvidence(samples: readonly SampleOutcome[], split?: Spl
       if (arr) arr.push(s.verdict === "pass");
       else byCase.set(s.caseId, [s.verdict === "pass"]);
     }
-    const latencies = decided.map((s) => s.latencyMs).filter((v): v is number => typeof v === "number");
+    const latencies = decided
+      .map((s) => s.latencyMs)
+      .filter((v): v is number => typeof v === "number");
     const p50 = percentile(latencies, 50);
     const p95 = percentile(latencies, 95);
     out.push({

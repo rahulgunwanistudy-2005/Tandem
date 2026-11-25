@@ -10,7 +10,12 @@
     "id": { "$ref": "common.schema.json#/$defs/id" },
     "featureId": { "$ref": "common.schema.json#/$defs/id" },
     "systemInstruction": { "type": "string", "maxLength": 8000 },
-    "promptTemplate": { "type": "string", "minLength": 1, "maxLength": 16000, "pattern": "\\{\\{input\\}\\}" },
+    "promptTemplate": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 16000,
+      "pattern": "\\{\\{input\\}\\}"
+    },
     "sha256": { "$ref": "common.schema.json#/$defs/sha256" },
     "parentId": { "$ref": "common.schema.json#/$defs/id" },
     "origin": { "enum": ["human", "repair"] },

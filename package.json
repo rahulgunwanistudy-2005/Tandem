@@ -1,6 +1,7 @@
 {
   "name": "tandem",
   "private": true,
+  "type": "module",
   "description": "Test prompts on real on-device models, judge and repair with a cloud model, publish per-model routing through Remote Config.",
   "license": "Apache-2.0",
   "packageManager": "pnpm@11.22.0",
@@ -16,6 +17,11 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "firebase-tools": "^15.37.0"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.15.0",
+    "firebase-tools": "^15.37.0",
+    "prettier": "^3.10.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.74.0"
   }
 }

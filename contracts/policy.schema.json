@@ -4,7 +4,16 @@
   "title": "Routing policy",
   "description": "Published as the Remote Config parameter tandem_policy_<featureId>. Resolved on the client: exact modelId, then platform wildcard, then default.",
   "type": "object",
-  "required": ["schemaVersion", "featureId", "version", "compiledAt", "tau", "default", "rules", "variants"],
+  "required": [
+    "schemaVersion",
+    "featureId",
+    "version",
+    "compiledAt",
+    "tau",
+    "default",
+    "rules",
+    "variants"
+  ],
   "additionalProperties": false,
   "properties": {
     "schemaVersion": { "const": 1 },
@@ -24,7 +33,9 @@
       "type": "object",
       "propertyNames": { "$ref": "common.schema.json#/$defs/id" },
       "additionalProperties": {
-        "type": "object", "additionalProperties": false, "required": ["systemInstruction", "promptTemplate", "sha256"],
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["systemInstruction", "promptTemplate", "sha256"],
         "properties": {
           "systemInstruction": { "type": "string" },
           "promptTemplate": { "type": "string" },
@@ -38,13 +49,28 @@
   },
   "$defs": {
     "rule": {
-      "type": "object", "additionalProperties": false, "required": ["mode", "variantId", "reason"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "variantId", "reason"],
       "properties": {
         "mode": { "$ref": "common.schema.json#/$defs/inferenceMode" },
         "variantId": { "$ref": "common.schema.json#/$defs/id" },
-        "reason": { "enum": ["PASSED", "INSUFFICIENT_EVIDENCE", "LB_BELOW_TAU", "LATENCY_OVER_BUDGET", "INTEGRITY_FAILURES", "NO_EVIDENCE", "AUTO_ROLLBACK", "MANUAL"] },
+        "reason": {
+          "enum": [
+            "PASSED",
+            "INSUFFICIENT_EVIDENCE",
+            "LB_BELOW_TAU",
+            "LATENCY_OVER_BUDGET",
+            "INTEGRITY_FAILURES",
+            "NO_EVIDENCE",
+            "AUTO_ROLLBACK",
+            "MANUAL"
+          ]
+        },
         "evidence": {
-          "type": "object", "additionalProperties": false, "required": ["n", "passes", "lb"],
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["n", "passes", "lb"],
           "properties": {
             "n": { "type": "integer", "minimum": 0 },
             "passes": { "type": "integer", "minimum": 0 },

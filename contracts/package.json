@@ -9,5 +9,8 @@
     "./*.json": "./*.json",
     "./fixtures/*.json": "./fixtures/*.json"
   },
-  "files": ["*.json", "fixtures"]
+  "files": [
+    "*.json",
+    "fixtures"
+  ]
 }

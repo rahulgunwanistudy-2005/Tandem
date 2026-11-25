@@ -16,7 +16,8 @@ export interface Interval {
 }
 
 function assertCounts(successes: number, n: number): void {
-  if (!Number.isInteger(n) || n < 0) throw new RangeError(`n must be a non-negative integer, got ${n}`);
+  if (!Number.isInteger(n) || n < 0)
+    throw new RangeError(`n must be a non-negative integer, got ${n}`);
   if (!Number.isInteger(successes) || successes < 0 || successes > n) {
     throw new RangeError(`successes must be an integer in [0, n], got ${successes} of ${n}`);
   }
@@ -25,7 +26,8 @@ function assertCounts(successes: number, n: number): void {
 /** Wilson score interval. Returns [0, 1] when n = 0 (no information). */
 export function wilsonInterval(successes: number, n: number, z: number = Z_95): Interval {
   assertCounts(successes, n);
-  if (!(z > 0) || !Number.isFinite(z)) throw new RangeError(`z must be a positive finite number, got ${z}`);
+  if (!(z > 0) || !Number.isFinite(z))
+    throw new RangeError(`z must be a positive finite number, got ${z}`);
   if (n === 0) return { lower: 0, upper: 1 };
   const p = successes / n;
   const z2 = z * z;

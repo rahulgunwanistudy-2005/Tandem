@@ -1,4 +1,12 @@
-import type { Case, CheckResult, Feature, JobResult, JudgeResult, ModelId, Verdict } from "./contracts.js";
+import type {
+  Case,
+  CheckResult,
+  Feature,
+  JobResult,
+  JudgeResult,
+  ModelId,
+  Verdict,
+} from "./contracts.js";
 import { evaluateAssert } from "./assertions.js";
 import { parseOutput, validateOutput } from "./schema.js";
 import { isDeviceTarget } from "./models.js";
@@ -31,13 +39,21 @@ export function runDeterministicChecks(
   //    never an on-device pass. UNKNOWN is treated as a failure too: we only trust what we can see.
   if (isDeviceTarget(target)) {
     const ok = result.backend === "ON_DEVICE";
-    checks.push({ id: "integrity", pass: ok, ...(ok ? {} : { detail: `device job answered by ${result.backend}` }) });
+    checks.push({
+      id: "integrity",
+      pass: ok,
+      ...(ok ? {} : { detail: `device job answered by ${result.backend}` }),
+    });
     if (!ok) return { checks, pass: false, integrityFailure: true };
   }
 
   // 2. Runner-reported error.
   if (result.errorCode) {
-    checks.push({ id: "error", pass: false, detail: `${result.errorCode}${result.errorMessage ? `: ${result.errorMessage}` : ""}` });
+    checks.push({
+      id: "error",
+      pass: false,
+      detail: `${result.errorCode}${result.errorMessage ? `: ${result.errorMessage}` : ""}`,
+    });
     return { checks, pass: false, integrityFailure: result.errorCode === "INTEGRITY_CLOUD_ANSWER" };
   }
   if (result.outputText === undefined) {
@@ -57,7 +73,14 @@ export function runDeterministicChecks(
     checks.push({
       id: "schema",
       pass: ok,
-      ...(ok ? {} : { detail: issues.slice(0, 3).map((i) => `${i.path}: ${i.message}`).join("; ") }),
+      ...(ok
+        ? {}
+        : {
+            detail: issues
+              .slice(0, 3)
+              .map((i) => `${i.path}: ${i.message}`)
+              .join("; "),
+          }),
     });
   }
 
@@ -69,10 +92,17 @@ export function runDeterministicChecks(
   checks.push({
     id: "latency",
     pass: latencyOk,
-    ...(latencyOk ? {} : { detail: `${Math.round(result.latencyMs)} ms > budget ${feature.latencyBudgetMs} ms` }),
+    ...(latencyOk
+      ? {}
+      : { detail: `${Math.round(result.latencyMs)} ms > budget ${feature.latencyBudgetMs} ms` }),
   });
 
-  return { checks, pass: checks.every((c) => c.pass), integrityFailure: false, parsed: parsed.value };
+  return {
+    checks,
+    pass: checks.every((c) => c.pass),
+    integrityFailure: false,
+    parsed: parsed.value,
+  };
 }
 
 /** Whether a sample needs the cloud judge: only deterministic passes that carry a rubric. */

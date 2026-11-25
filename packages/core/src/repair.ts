@@ -58,11 +58,16 @@ export function trainGate(train: Counts, s: GateSettings): GateResult {
   const lb = wilsonLowerBound(train.passes, train.n);
   if (train.n < s.minN) return { gate: "train", pass: false, detail: `n=${train.n} < ${s.minN}` };
   const pass = lb >= s.tau;
-  return { gate: "train", pass, detail: `${train.passes}/${train.n}, LB ${fmt(lb)} ${pass ? "≥" : "<"} τ ${fmt(s.tau)}` };
+  return {
+    gate: "train",
+    pass,
+    detail: `${train.passes}/${train.n}, LB ${fmt(lb)} ${pass ? "≥" : "<"} τ ${fmt(s.tau)}`,
+  };
 }
 
 export function holdoutGate(train: Counts, holdout: Counts, s: GateSettings): GateResult {
-  if (holdout.n < s.minHoldoutN) return { gate: "holdout", pass: false, detail: `n=${holdout.n} < ${s.minHoldoutN}` };
+  if (holdout.n < s.minHoldoutN)
+    return { gate: "holdout", pass: false, detail: `n=${holdout.n} < ${s.minHoldoutN}` };
   const lb = wilsonLowerBound(holdout.passes, holdout.n);
   const need = s.tau - s.holdoutSlack;
   const gap = newcombeDifference(holdout.passes, holdout.n, train.passes, train.n);
@@ -86,7 +91,8 @@ export function regressionGate(targets: readonly RegressionTarget[], s: GateSett
   const rows = targets.map((t) => {
     const diff = newcombeDifference(t.candidate.passes, t.candidate.n, t.parent.passes, t.parent.n);
     const nonInferior = diff.lower >= -s.regressionMargin;
-    const keepsDevice = !t.parentOnDevice || wilsonLowerBound(t.candidate.passes, t.candidate.n) >= s.tau;
+    const keepsDevice =
+      !t.parentOnDevice || wilsonLowerBound(t.candidate.passes, t.candidate.n) >= s.tau;
     const pass = t.candidate.n > 0 && nonInferior && keepsDevice;
     const why: string[] = [];
     if (t.candidate.n === 0) why.push("not measured");

@@ -5,18 +5,18 @@ Rule: if behaviour disagrees with these notes, trust behaviour, update this file
 
 ## Differences from the original brief
 
-| Topic | Brief said | Docs say (Nov 25) |
-|---|---|---|
-| Android on-device SDK | `firebase-ai-ondevice:16.0.0-beta01` | `firebase-ai:18.2.0` + `firebase-ai-ondevice:16.0.0-beta08` + `firebase-appcheck-debug:20.1.0`; on-device SDK is **not in the BoM** |
-| Android model download | app must handle DOWNLOADABLE | confirmed, via `FirebaseAIOnDevice.checkStatus()` / `FirebaseAIOnDevice.download(): Flow<DownloadStatus>` |
-| Android model variant | `getBaseModelName()` | `OnDeviceConfig(modelOption = OnDeviceModelOption.STABLE / PREVIEW / PREVIEW_FAST)`; base model name still via ML Kit (verify on device) |
-| iOS API | `hybridModel(primary:, secondary:)` | `ai.generativeModelSession(model: .hybridModel(primary:, secondary:))`; ONLY_ON_DEVICE = session with `FirebaseAI.SystemLanguageModel.default` alone |
-| iOS "which backend" | unknown | `response.rawResponse.modelVersion`; on-device value is `apple-foundation-models-system-language-model` |
-| iOS tools | "coming soon, do not use" | page now says custom function calling **is** supported on-device. Still not used (not needed). |
-| iOS structured output | docs thin | still "docs are coming soon" — test on hardware before relying on it |
-| Web on-device init | not mentioned | `model.initializeDeviceModel(progressCb)` **must** be called on/after a user gesture before the first request |
-| Web default cloud model | — | JS SDK ≥ 13.0.0 defaults the hybrid cloud model to `gemini-3.5-flash-lite` |
-| Current models | gemini-3.5-flash-lite, gemini-3.8-flash | also `gemini-4-hydrogen` (newest/strongest — use for repair). Gemini 2.5 rerouted from Dec 1. |
+| Topic                   | Brief said                              | Docs say (Nov 25)                                                                                                                                    |
+| ----------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Android on-device SDK   | `firebase-ai-ondevice:16.0.0-beta01`    | `firebase-ai:18.2.0` + `firebase-ai-ondevice:16.0.0-beta08` + `firebase-appcheck-debug:20.1.0`; on-device SDK is **not in the BoM**                  |
+| Android model download  | app must handle DOWNLOADABLE            | confirmed, via `FirebaseAIOnDevice.checkStatus()` / `FirebaseAIOnDevice.download(): Flow<DownloadStatus>`                                            |
+| Android model variant   | `getBaseModelName()`                    | `OnDeviceConfig(modelOption = OnDeviceModelOption.STABLE / PREVIEW / PREVIEW_FAST)`; base model name still via ML Kit (verify on device)             |
+| iOS API                 | `hybridModel(primary:, secondary:)`     | `ai.generativeModelSession(model: .hybridModel(primary:, secondary:))`; ONLY_ON_DEVICE = session with `FirebaseAI.SystemLanguageModel.default` alone |
+| iOS "which backend"     | unknown                                 | `response.rawResponse.modelVersion`; on-device value is `apple-foundation-models-system-language-model`                                              |
+| iOS tools               | "coming soon, do not use"               | page now says custom function calling **is** supported on-device. Still not used (not needed).                                                       |
+| iOS structured output   | docs thin                               | still "docs are coming soon" — test on hardware before relying on it                                                                                 |
+| Web on-device init      | not mentioned                           | `model.initializeDeviceModel(progressCb)` **must** be called on/after a user gesture before the first request                                        |
+| Web default cloud model | —                                       | JS SDK ≥ 13.0.0 defaults the hybrid cloud model to `gemini-3.5-flash-lite`                                                                           |
+| Current models          | gemini-3.5-flash-lite, gemini-3.8-flash | also `gemini-4-hydrogen` (newest/strongest — use for repair). Gemini 2.5 rerouted from Dec 1.                                                        |
 
 ## Web (Chrome desktop) — `firebase` JS SDK (npm latest: 13.4.0)
 
@@ -72,7 +72,7 @@ onDeviceExtension?.warmUp()
 - SDK ≥ 17.10.0 (BoM 34.10.0). Supported devices: ML Kit GenAI device list.
 - Foreground only. English + Korean validated. **4000-token** total request limit; avoid outputs
   > 256 tokens. `ErrorCode.BUSY` on bursts (exponential backoff);
-  `ErrorCode.PER_APP_BATTERY_USE_QUOTA_EXCEEDED` for long-window quota.
+  > `ErrorCode.PER_APP_BATTERY_USE_QUOTA_EXCEEDED` for long-window quota.
 - SDK does **not** trigger the download; the app must.
 - Multi-turn on-device concatenates history and does not fall back → Tandem is single-turn only.
 - TODO (on hardware): confirm exception class names that carry `ErrorCode`; confirm whether on-device

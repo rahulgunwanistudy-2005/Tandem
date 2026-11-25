@@ -19,8 +19,15 @@ const dir = join(import.meta.dirname, "../../../contracts");
 const fx = join(dir, "fixtures");
 const load = <T>(p: string): T => JSON.parse(readFileSync(p, "utf8")) as T;
 
-const addFormats = (addFormatsImport as unknown as { default?: typeof addFormatsImport }).default ?? addFormatsImport;
-const ajv = new Ajv2020({ allErrors: true, strict: true, strictRequired: false, allowUnionTypes: true });
+const addFormats =
+  (addFormatsImport as unknown as { default?: typeof addFormatsImport }).default ??
+  addFormatsImport;
+const ajv = new Ajv2020({
+  allErrors: true,
+  strict: true,
+  strictRequired: false,
+  allowUnionTypes: true,
+});
 (addFormats as unknown as (a: Ajv2020) => void)(ajv);
 for (const f of readdirSync(dir).filter((f) => f.endsWith(".schema.json"))) {
   ajv.addSchema(load(join(dir, f)), f);
@@ -60,7 +67,9 @@ describe("fixtures through the engine", () => {
   const event = load<TelemetryEvent>(join(fx, "telemetry.event.json"));
 
   it("variant sha256 matches its content", async () => {
-    expect(await variantHash(variant.systemInstruction, variant.promptTemplate)).toBe(variant.sha256);
+    expect(await variantHash(variant.systemInstruction, variant.promptTemplate)).toBe(
+      variant.sha256,
+    );
   });
 
   it("job verdicts are reproducible from their results", () => {
@@ -74,7 +83,10 @@ describe("fixtures through the engine", () => {
   it("policy evidence LBs are honest Wilson bounds", () => {
     for (const rule of Object.values(policy.rules)) {
       if (!rule.evidence) continue;
-      expect(rule.evidence.lb).toBeCloseTo(wilsonLowerBound(rule.evidence.passes, rule.evidence.n), 4);
+      expect(rule.evidence.lb).toBeCloseTo(
+        wilsonLowerBound(rule.evidence.passes, rule.evidence.n),
+        4,
+      );
     }
   });
 

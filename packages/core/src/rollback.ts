@@ -31,18 +31,47 @@ export const DEFAULT_ROLLBACK: RollbackThresholds = {
 };
 
 export type RollbackDecision =
-  | { demote: false; reason: "INSUFFICIENT_TRAFFIC" | "HEALTHY"; escalationLb: number; errorLb: number }
-  | { demote: true; metric: "escalation_rate" | "error_rate"; observed: number; lowerBound: number; threshold: number };
+  | {
+      demote: false;
+      reason: "INSUFFICIENT_TRAFFIC" | "HEALTHY";
+      escalationLb: number;
+      errorLb: number;
+    }
+  | {
+      demote: true;
+      metric: "escalation_rate" | "error_rate";
+      observed: number;
+      lowerBound: number;
+      threshold: number;
+    };
 
-export function rollbackDecision(w: WindowStats, t: RollbackThresholds = DEFAULT_ROLLBACK): RollbackDecision {
-  const escalationLb = w.attempts === 0 ? 0 : wilsonLowerBound(Math.min(w.escalations, w.attempts), w.attempts);
-  const errorLb = w.attempts === 0 ? 0 : wilsonLowerBound(Math.min(w.errors, w.attempts), w.attempts);
-  if (w.attempts < t.minAttempts) return { demote: false, reason: "INSUFFICIENT_TRAFFIC", escalationLb, errorLb };
+export function rollbackDecision(
+  w: WindowStats,
+  t: RollbackThresholds = DEFAULT_ROLLBACK,
+): RollbackDecision {
+  const escalationLb =
+    w.attempts === 0 ? 0 : wilsonLowerBound(Math.min(w.escalations, w.attempts), w.attempts);
+  const errorLb =
+    w.attempts === 0 ? 0 : wilsonLowerBound(Math.min(w.errors, w.attempts), w.attempts);
+  if (w.attempts < t.minAttempts)
+    return { demote: false, reason: "INSUFFICIENT_TRAFFIC", escalationLb, errorLb };
   if (escalationLb > t.maxEscalationRate) {
-    return { demote: true, metric: "escalation_rate", observed: w.escalations / w.attempts, lowerBound: escalationLb, threshold: t.maxEscalationRate };
+    return {
+      demote: true,
+      metric: "escalation_rate",
+      observed: w.escalations / w.attempts,
+      lowerBound: escalationLb,
+      threshold: t.maxEscalationRate,
+    };
   }
   if (errorLb > t.maxErrorRate) {
-    return { demote: true, metric: "error_rate", observed: w.errors / w.attempts, lowerBound: errorLb, threshold: t.maxErrorRate };
+    return {
+      demote: true,
+      metric: "error_rate",
+      observed: w.errors / w.attempts,
+      lowerBound: errorLb,
+      threshold: t.maxErrorRate,
+    };
   }
   return { demote: false, reason: "HEALTHY", escalationLb, errorLb };
 }

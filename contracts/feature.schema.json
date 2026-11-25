@@ -4,7 +4,15 @@
   "title": "Feature",
   "description": "A prompt-backed product feature under test. Prompt text lives in immutable variants.",
   "type": "object",
-  "required": ["id", "name", "outputKind", "outputSchema", "genConfig", "latencyBudgetMs", "cloudModel"],
+  "required": [
+    "id",
+    "name",
+    "outputKind",
+    "outputSchema",
+    "genConfig",
+    "latencyBudgetMs",
+    "cloudModel"
+  ],
   "additionalProperties": false,
   "properties": {
     "id": { "$ref": "common.schema.json#/$defs/id" },

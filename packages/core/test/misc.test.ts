@@ -2,15 +2,26 @@ import { describe, expect, it } from "vitest";
 import fc from "fast-check";
 import { canonicalJson, judgeCacheKey, sha256Hex, variantHash } from "../src/canonical.js";
 import { backoffMs, classifyWebError, isErrorCode, TandemError } from "../src/errors.js";
-import { familyOf, isDeviceTarget, isModelId, parseModelId, renderPrompt, wildcardFor } from "../src/models.js";
+import {
+  familyOf,
+  isDeviceTarget,
+  isModelId,
+  parseModelId,
+  renderPrompt,
+  wildcardFor,
+} from "../src/models.js";
 import { fnv1a, stratifiedSplit } from "../src/split.js";
 
 describe("canonical + hashing", () => {
   it("sorts keys recursively and drops undefined", () => {
-    expect(canonicalJson({ b: 1, a: { d: [3, { z: 1, y: 2 }], c: undefined } })).toBe('{"a":{"d":[3,{"y":2,"z":1}]},"b":1}');
+    expect(canonicalJson({ b: 1, a: { d: [3, { z: 1, y: 2 }], c: undefined } })).toBe(
+      '{"a":{"d":[3,{"y":2,"z":1}]},"b":1}',
+    );
   });
   it("hashes like sha256sum", async () => {
-    expect(await sha256Hex("abc")).toBe("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    expect(await sha256Hex("abc")).toBe(
+      "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+    );
     expect(await variantHash("s", "t")).toBe(await sha256Hex("s\u0000t"));
   });
   it("judge cache key ignores key order and whitespace of parsed output", async () => {
@@ -20,7 +31,12 @@ describe("canonical + hashing", () => {
     expect(a).not.toBe(await judgeCacheKey("f", "v2", "c", { x: 1, y: 2 }));
   });
   it("property: canonicalJson is idempotent through parse", () => {
-    fc.assert(fc.property(fc.jsonValue(), (v) => canonicalJson(JSON.parse(canonicalJson(v))) === canonicalJson(v)));
+    fc.assert(
+      fc.property(
+        fc.jsonValue(),
+        (v) => canonicalJson(JSON.parse(canonicalJson(v))) === canonicalJson(v),
+      ),
+    );
   });
 });
 
@@ -28,7 +44,10 @@ describe("errors", () => {
   it.each([
     [Object.assign(new Error("x"), { name: "QuotaExceededError" }), "INPUT_TOO_LONG"],
     [new Error("The input is too long for the model"), "INPUT_TOO_LONG"],
-    [Object.assign(new Error("unsupported output language"), { name: "NotSupportedError" }), "MODEL_UNAVAILABLE"],
+    [
+      Object.assign(new Error("unsupported output language"), { name: "NotSupportedError" }),
+      "MODEL_UNAVAILABLE",
+    ],
     [new Error("Model download in progress"), "MODEL_DOWNLOADING"],
     [new Error("On-device model is not available"), "MODEL_UNAVAILABLE"],
     [new Error("Response was blocked due to SAFETY"), "GUARDRAIL"],
@@ -64,12 +83,20 @@ describe("models", () => {
     expect(isModelId("android:nano-v4")).toBe(true);
     expect(isModelId("android:*")).toBe(true);
     expect(isModelId("windows:x")).toBe(false);
-    expect(parseModelId("cloud:gemini-3.5-flash-lite")).toEqual({ platform: "cloud", model: "gemini-3.5-flash-lite" });
+    expect(parseModelId("cloud:gemini-3.5-flash-lite")).toEqual({
+      platform: "cloud",
+      model: "gemini-3.5-flash-lite",
+    });
     expect(() => parseModelId("nope")).toThrow(SyntaxError);
     expect(isDeviceTarget("ios:26.1")).toBe(true);
     expect(isDeviceTarget("cloud:x")).toBe(false);
     expect(wildcardFor("chrome:158")).toBe("chrome:*");
-    expect(["chrome:1", "android:1", "ios:1", "cloud:1"].map((m) => familyOf(m as never))).toEqual(["chrome-nano", "android-nano", "apple-fm", "gemini-cloud"]);
+    expect(["chrome:1", "android:1", "ios:1", "cloud:1"].map((m) => familyOf(m as never))).toEqual([
+      "chrome-nano",
+      "android-nano",
+      "apple-fm",
+      "gemini-cloud",
+    ]);
   });
   it("renders every {{input}} placeholder", () => {
     expect(renderPrompt("A {{input}} B {{input}}", "x")).toBe("A x B x");
@@ -77,7 +104,10 @@ describe("models", () => {
 });
 
 describe("stratifiedSplit", () => {
-  const items = Array.from({ length: 60 }, (_, i) => ({ id: `c${String(i).padStart(3, "0")}`, tag: i % 3 === 0 ? "es" : "en" }));
+  const items = Array.from({ length: 60 }, (_, i) => ({
+    id: `c${String(i).padStart(3, "0")}`,
+    tag: i % 3 === 0 ? "es" : "en",
+  }));
   it("holds out ~30% in every stratum, deterministically", () => {
     const s = stratifiedSplit(items, (i) => i.tag);
     for (const tag of ["es", "en"]) {
