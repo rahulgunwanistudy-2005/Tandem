@@ -1,6 +1,6 @@
 # STATUS
 
-_Last updated: 2026-11-26 01:35 IST._
+_Last updated: 2026-11-26 01:45 IST._
 
 ## Clock
 
@@ -84,21 +84,48 @@ Open questions for Rahul are in the "Blocked" section.
 - Firebase: GCP project **`tandem-hybrid-ai`** created under the gcloud account. Adding Firebase to
   it returns 403 until that account accepts the Firebase terms in the console (see Blocked).
 
+## Done (Nov 26, early morning)
+
+- **Repair loop** (`apps/console/src/repair.ts`, `RepairPanel.tsx`): the cloud repair model sees
+  train failures only; its candidate is saved as an immutable variant and runs beside the parent on
+  every target; the three core gates decide. **The compiled policy only ever contains the parent and
+  candidates accepted for that target** — a candidate that merely scores well never reaches a policy.
+- **Second real Nano run — human v2 beside v1** (same 40 cases, one run, Chrome 158 / M1):
+  v1 **20/40** (LB 0.352, p50 3.2 s / p95 4.4 s), v2 **26/40** (LB 0.495, p50 3.7 s / p95 4.9 s),
+  0 integrity failures. v2 defines each intent, says English is `en`, and makes low urgency explicit.
+  The gates **rejected v2 at train: n = 28 < 30** (28 train cases × 1 sample) — the panel says so.
+  v1's 12 → 20 swing between identical runs is mostly the per-sample 4 s latency check (session
+  creation dominates); a 2-sample run is needed to clear n ≥ 30. (These run docs were lost from the
+  local emulator when a restart cut the export short; the numbers above were read off the live page.)
+- `functions/`: **`aggregateTelemetry`** (hourly rollups per feature × model, recomputed from raw so
+  reruns are idempotent) and **`autoRollback`** (Wilson LB of escalation/error rate over the last
+  hour, live policy version only → next version with the rule on the cloud + an incident). Policy
+  writes now claim the version in Firestore before Remote Config and release it if RC rejects.
+  Both verified in the emulator on real Counter telemetry. 25 function tests.
+- **`apps/counter-web`**: Counter support inbox on `@tandem/runtime`; every label is a live
+  `tandem.generate()`, with provenance (backend as reported by AI Logic, variant, policy version,
+  latency, escalation) and a flash when a published policy arrives. Ships policy v0 (all cloud).
+- **Observe page**: 24 h of field telemetry per feature × model, Wilson bounds vs rollback
+  thresholds, incidents.
+- **Bug found by running it:** every AI Logic cloud error was classified `QUOTA` (a bare `/rate/`
+  matched "gene**rate**Content" in the URL). Fixed in core with a regression test on the real message.
+
 ## Next
 
-1. Repair loop: propose a variant for a failing device model (cloud repair model), run it on train +
-   holdout, apply the three gates, show the decision. Triage v1's `language` failures are the demo.
-2. `aggregateTelemetry` + `autoRollback` + Observe page; counter-web sample app on `@tandem/runtime`.
-3. Second platform: Android (needs SDK + a supported phone) or Apple Foundation Models through the
-   iOS Simulator on this Mac (needs Xcode 26; Command Line Tools here are Swift 6.0.3 / SDK 15.2).
-4. Once Firebase is added: deploy rules, functions, hosting; real cloud reference + judge + RC publish.
+1. Once Firebase is added: web app config, Auth (anonymous + Google), Firestore, AI Logic, App
+   Check, deploy rules/indexes/functions/hosting; then real cloud reference + judge + repair + RC
+   publish, and Counter picking the policy up live — the video's core shot.
+2. A 2-sample triage run (v1 + a repair candidate) so the train gate has n ≥ 30.
+3. Second platform: Apple Foundation Models via the iOS Simulator / Mac (needs Xcode 26) or
+   Android (needs SDK + a supported phone).
+4. README with real numbers and screenshots; τ dial + Pareto on the policy page; design QA.
 
 ## Blocked (needs Rahul)
 
 1. Hackathon quota account — Sprint 3 request closes **Nov 25 10:00 AM PT = 23:30 IST today**.
-2. Firebase: open https://console.firebase.google.com signed in as the gcloud account, choose
-   "Create a project" → "Add Firebase to a Google Cloud project" → **tandem-hybrid-ai**, accept the
-   terms. Everything after that is scripted. Functions need Blaze: linking the existing billing
+2. Firebase (still 403 at 01:45 IST Nov 26): open https://console.firebase.google.com signed in as
+   the gcloud account, choose "Create a project" → "Add Firebase to a Google Cloud project" →
+   **tandem-hybrid-ai**, accept the terms. Everything after that is scripted. Functions need Blaze: linking the existing billing
    account is a spending decision, so it waits for an explicit yes.
 3. ~~Disk space~~ — **resolved**: 245 GB free after cleanup (Chrome's 22 GB gate and Xcode both fit).
 4. `chrome://on-device-internals` result on this Mac.
@@ -114,3 +141,7 @@ Open questions for Rahul are in the "Blocked" section.
   the working directory; rules, indexes and the RC template live in `firebase/`.
 - **D4 — repair margins:** holdout slack 0.10, regression non-inferiority margin 0.10 (ADR 0003).
 - **D5 — default project id `demo-tandem`** so emulators run offline with no real project.
+- **D6 — gates before the compiler:** `publishable` evidence = parent + gate-accepted candidates.
+- **D7 — no Xcode needed for web/Android.** With no iPhone, Apple Foundation Models can still be a
+  second platform through the iOS Simulator / a Mac target on this M1 (Apple Intelligence is on),
+  but that needs Xcode 26 from the App Store.

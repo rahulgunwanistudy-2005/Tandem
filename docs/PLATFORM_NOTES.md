@@ -166,6 +166,9 @@ registered in Console → Security → App Check → Apps → ⋮ → Manage deb
 - Admin Remote Config: `getRemoteConfig().getTemplate()`, `validateTemplate(t)`, `publishTemplate(t)`
   (ETag-guarded, 412 on a concurrent publish); parameter `{ defaultValue: { value }, valueType: "JSON" }`.
 - Remote Config has **no emulator**: locally `publishPolicy` records the version in Firestore only.
-  Scheduled functions need the Pub/Sub emulator and are not fired on schedule locally.
+  Scheduled functions need the Pub/Sub emulator (`"pubsub": { "port": 8085 }` in `firebase.json`).
+  Verified 2026-11-26 with firebase-tools: publishing to `firebase-schedule-<fn>` does **not** run
+  a v2 `onSchedule` function ("Unsupported trigger signature: http"); the emulator exposes it as
+  HTTP at `POST http://127.0.0.1:5001/<project>/us-central1/<fn>-0`, which runs it once.
 - Tandem resolves the policy JSON on the client by `modelId`, so it works without conditions;
   custom-signal conditions are only a canary optimisation.
