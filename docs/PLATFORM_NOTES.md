@@ -67,6 +67,17 @@ Read from `dist/ai-public.d.ts` and `dist/esm/index.esm.js`, not from memory:
 | "fetch-error" | "api-not-enabled" | "unsupported" | ...`).
 - `generationConfig.responseSchema: TypedSchema | SchemaRequest` (plain objects are accepted).
 
+### Measured on hardware (2026-11-26, Apple M1 8 GB, macOS 26.3, Chrome 158)
+
+- `chrome://on-device-internals` equivalent from Local State: `performance_class` 4, `vram_mb` 5461
+  (> 4096 → GPU path eligible), model component `2025.8.8.1141` validated.
+- `LanguageModel.availability()` → `"available"`. A cold `LanguageModel.create()` took **8.4 s**, a
+  constrained `prompt()` **2.7 s**.
+- First Tandem run (triage v1, 40 cases, 1 sample, through `@firebase/ai` `ONLY_ON_DEVICE`): every
+  answer labelled `on_device`; **12/40 pass**, p50 **3.9 s**, p95 **9.8 s**. The SDK makes a new
+  session per call, so the measured latency includes session creation. Dominant failures: language
+  `en` answered as `other` (9), urgency judgement (6), latency over the 4 s budget.
+
 - Enum output: cloud `responseMimeType: "text/x.enum"`, schema `Schema.enumString({ enum: [...] })`.
 - Not supported on-device: multi-turn chat, tools, non-JPEG/PNG images, file URLs.
 - Not supported in hybrid at all: Live API, server prompt templates, reliable `countTokens`.
@@ -138,6 +149,23 @@ registered in Console → Security → App Check → Apps → ⋮ → Manage deb
   `activate(rc)` is called — the runtime activates, then reloads only the updated keys.
 - Android (`setCustomSignals { put(...) }`, `addOnConfigUpdateListener`) and iOS
   (`setCustomSignals`, `addOnConfigUpdateListener`): still to verify from installed artifacts.
-- Firestore (4.20.0): `writeBatch(db)`, `doc(db, ...path)`, `Timestamp.fromMillis(ms)` — verified.
+- Firestore (4.20.0): `writeBatch(db)`, `doc(db, ...path)`, `Timestamp.fromMillis(ms)`,
+  `runTransaction`, `onSnapshot`, `query/where/orderBy/limit`, `connectFirestoreEmulator` — verified.
+  A listener **ends on its first error** (e.g. a rules denial while a just-created parent document
+  is still committing); the console resubscribes (`resilient()` in `apps/console/src/data/repo.ts`).
+- Auth 1.13.11: `signInAnonymously`, `signInWithPopup` + `GoogleAuthProvider`, `onAuthStateChanged`,
+  `connectAuthEmulator`. App Check 0.13.2: `initializeAppCheck(app, { provider: new
+  ReCaptchaEnterpriseProvider(key), isTokenAutoRefreshEnabled })`; the SDK reads
+  `self.FIREBASE_APPCHECK_DEBUG_TOKEN` (string or `true`). Functions 0.14.0: `getFunctions`,
+  `httpsCallable`, `connectFunctionsEmulator`.
+
+## Cloud Functions (firebase-functions 7.4.0, firebase-admin 14.5.1) — verified in typings
+
+- `onCall(opts, handler)` from `firebase-functions/v2/https` (`enforceAppCheck`), `HttpsError(code, msg)`;
+  `onSchedule({ schedule, region }, handler)` from `firebase-functions/v2/scheduler`.
+- Admin Remote Config: `getRemoteConfig().getTemplate()`, `validateTemplate(t)`, `publishTemplate(t)`
+  (ETag-guarded, 412 on a concurrent publish); parameter `{ defaultValue: { value }, valueType: "JSON" }`.
+- Remote Config has **no emulator**: locally `publishPolicy` records the version in Firestore only.
+  Scheduled functions need the Pub/Sub emulator and are not fired on schedule locally.
 - Tandem resolves the policy JSON on the client by `modelId`, so it works without conditions;
   custom-signal conditions are only a canary optimisation.

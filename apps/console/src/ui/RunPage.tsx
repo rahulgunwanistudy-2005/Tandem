@@ -343,7 +343,7 @@ function Publish({ pid, fid, rid, feature, evidence, variants, settings, finishe
         </tbody>
       </table>
       {!finished && <p className="small faint">Publishing unlocks when every job is finished and judged.</p>}
-      {!cloudAvailable && <p className="small faint">Publishing needs the publishPolicy function (emulator or deployed project).</p>}
+      {!cloudAvailable && <p className="small faint">Local mode: the policy is recorded by the emulated publishPolicy; Remote Config is only written in a real project.</p>}
       {state.err && <p className="small error-text">{state.err}</p>}
       {state.ok && <p className="small">{state.ok} <a className="btn ghost sm" onClick={() => go("p", pid, "f", fid, "policy")}>View</a></p>}
     </div>

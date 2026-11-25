@@ -1,6 +1,6 @@
 # STATUS
 
-_Last updated: 2026-11-25 22:45 IST._
+_Last updated: 2026-11-26 01:35 IST._
 
 ## Clock
 
@@ -65,18 +65,41 @@ Open questions for Rahul are in the "Blocked" section.
   user gesture; new session per call; `systemInstruction` not forwarded to Chrome).
 - **Not yet verified on hardware**: no real Gemini Nano call has been made through the runtime.
 
+## Done (Nov 26, night)
+
+- **First real on-device run.** `apps/console` drove a 40-job triage run on Chrome 158's Gemini
+  Nano on this M1: every answer labelled `on_device`, **12/40 pass**, Wilson LB 0.181, p50 3.9 s /
+  p95 9.8 s. The compiler routed `chrome:158` to the cloud (`LB_BELOW_TAU`) and `publishPolicy`
+  (functions emulator) recorded v1. Numbers in `PLATFORM_NOTES.md`.
+- `apps/console` (Vite + React): emulator mode, anonymous/Google sign-in, Counter demo seed
+  (triage 40 cases, reply 16 cases with rubrics), runner loop with transactional leases and
+  heartbeats, cloud reference runner, judge with output-hash cache, live matrix, Wilson evidence,
+  compile + diff + publish, devices page with pairing codes. 26 tests, 99% lines on runner/judge/plan.
+- `functions/`: `publishPolicy` (membership, shape, next-version concurrency, RC JSON parameter,
+  Firestore record), `claimPairing`, `reapLeases`; esbuild bundle; 20 tests.
+- Rules: members' consoles lease `cloud:*` reference jobs (emulator test added, 20 rules tests).
+- Core fix: a device error with no answer is an error, not an integrity failure.
+- Bugs found by running it for real: a just-created project was opened before it committed (rules
+  denial ended the runner's listener) and StrictMode disposed the runner's queue. Both fixed.
+- Firebase: GCP project **`tandem-hybrid-ai`** created under the gcloud account. Adding Firebase to
+  it returns 403 until that account accepts the Firebase terms in the console (see Blocked).
+
 ## Next
 
-1. `apps/console`: auth, projects, features/cases editor, Chrome runner with leasing, cloud reference,
-   judge + cache, live run matrix. Needs the Firebase project (see Blocked).
-2. `functions/`: `claimPairing`, `publishPolicy` (ETag), `reapLeases`.
-3. Android runtime + runner + Counter (needs Android SDK + device).
+1. Repair loop: propose a variant for a failing device model (cloud repair model), run it on train +
+   holdout, apply the three gates, show the decision. Triage v1's `language` failures are the demo.
+2. `aggregateTelemetry` + `autoRollback` + Observe page; counter-web sample app on `@tandem/runtime`.
+3. Second platform: Android (needs SDK + a supported phone) or Apple Foundation Models through the
+   iOS Simulator on this Mac (needs Xcode 26; Command Line Tools here are Swift 6.0.3 / SDK 15.2).
+4. Once Firebase is added: deploy rules, functions, hosting; real cloud reference + judge + RC publish.
 
 ## Blocked (needs Rahul)
 
 1. Hackathon quota account — Sprint 3 request closes **Nov 25 10:00 AM PT = 23:30 IST today**.
-2. Firebase project with AI Logic (Gemini Developer API), App Check, Firestore, Auth (Anonymous +
-   Google), Remote Config, Functions (Blaze), Hosting; budget alert.
+2. Firebase: open https://console.firebase.google.com signed in as the gcloud account, choose
+   "Create a project" → "Add Firebase to a Google Cloud project" → **tandem-hybrid-ai**, accept the
+   terms. Everything after that is scripted. Functions need Blaze: linking the existing billing
+   account is a spending decision, so it waits for an explicit yes.
 3. ~~Disk space~~ — **resolved**: 245 GB free after cleanup (Chrome's 22 GB gate and Xcode both fit).
 4. `chrome://on-device-internals` result on this Mac.
 5. Which Android phone (model) is on hand? Which iPhone (model, iOS version, Apple Intelligence on)?
