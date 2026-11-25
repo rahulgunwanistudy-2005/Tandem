@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"],
+    "lib": ["ES2023"],
+    "paths": { "@tandem/core": ["../packages/core/src/index.ts"] }
+  },
+  "include": ["src", "test", "../packages/runtime-web/src/policy.ts", "../packages/runtime-web/src/types.ts"]
+}

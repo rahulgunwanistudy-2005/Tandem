@@ -30,6 +30,10 @@ jobs:
         run: pnpm --filter @tandem/core test:coverage
       - name: Runtime tests with coverage gate (≥ 90% lines)
         run: pnpm --filter @tandem/runtime test:coverage
+      - name: Console runner, judge and planner tests with coverage gate (≥ 90% lines)
+        run: pnpm --filter @tandem/console test:coverage
+      - name: Build console and functions bundle
+        run: pnpm --filter @tandem/console build && pnpm --filter @tandem/functions build
       - run: pnpm test
 
   rules:
