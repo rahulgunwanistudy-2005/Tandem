@@ -33,7 +33,7 @@ jobs:
       - name: Console runner, judge and planner tests with coverage gate (≥ 90% lines)
         run: pnpm --filter @tandem/console test:coverage
       - name: Build console and functions bundle
-        run: pnpm --filter @tandem/console build && pnpm --filter @tandem/functions build
+        run: pnpm --filter @tandem/console build && pnpm --filter @tandem/counter-web build && pnpm --filter @tandem/functions build
       - run: pnpm test
 
   rules:
