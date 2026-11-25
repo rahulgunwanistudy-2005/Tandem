@@ -3,6 +3,7 @@ import { httpsCallable } from "firebase/functions";
 import {
   compilePolicy,
   decide,
+  DEFAULT_GATES,
   DEFAULT_SETTINGS,
   diffPolicies,
   isDeviceTarget,
@@ -19,7 +20,9 @@ import {
 import { cloudAvailable, firebase } from "../firebase.js";
 import type { Project, PublishedPolicy, Run } from "../data/repo.js";
 import { cellKey, evidenceOf, matrix, orderTargets, progressOf, type Cell } from "../data/plan.js";
-import { go, href, ms, pct, useLive, useRepo } from "./hooks.js";
+import { gateRun } from "../repair.js";
+import { go, href, ms, pct, useLive, useRepo, useUser } from "./hooks.js";
+import { GatesPanel, RepairCard } from "./RepairPanel.js";
 
 export function RunPage({ pid, fid, rid }: { pid: string; fid: string; rid: string }) {
   const repo = useRepo();
@@ -29,13 +32,27 @@ export function RunPage({ pid, fid, rid }: { pid: string; fid: string; rid: stri
   const features = useLive<Feature[]>((cb) => repo.watchFeatures(pid, cb), [pid]);
   const variants = useLive<Variant[]>((cb) => repo.watchVariants(pid, fid, cb), [pid, fid]);
   const project = useLive<Project | undefined>((cb) => repo.watchProject(pid, cb), [pid]);
+  const published = useLive<PublishedPolicy[]>((cb) => repo.watchPolicies(pid, fid, cb), [pid, fid]);
+  const user = useUser();
   const feature = features?.find((f) => f.id === fid);
   const [open, setOpen] = useState<Cell>();
+  const parentId = feature?.defaultVariantId ?? "v1";
+  const live = published?.[0];
 
   const progress = useMemo(() => progressOf(jobs ?? []), [jobs]);
   const cells = useMemo(() => matrix(jobs ?? []), [jobs]);
   const evidence = useMemo(() => evidenceOf(jobs ?? []), [jobs]);
   const targets = useMemo(() => orderTargets(run?.targets ?? []), [run]);
+  const tau = { ...DEFAULT_SETTINGS, ...(project?.settings ?? {}) }.tau;
+  const verdicts = useMemo(() => gateRun(jobs ?? [], parentId, live?.policy, { ...DEFAULT_GATES, tau }), [jobs, parentId, live, tau]);
+  /**
+   * The compiler only sees the parent and candidates that passed all three gates for that target.
+   * A candidate that merely scores well on train never reaches a policy.
+   */
+  const publishable = useMemo(
+    () => evidence.filter((e) => e.variantId === parentId || verdicts.some((v) => v.candidate === e.variantId && v.target === e.target && v.evaluation.accepted)),
+    [evidence, verdicts, parentId],
+  );
 
   const finished = progress.total > 0 && progress.queued + progress.leased === 0 && progress.pendingJudge === 0;
   useEffect(() => {
@@ -81,6 +98,11 @@ export function RunPage({ pid, fid, rid }: { pid: string; fid: string; rid: stri
         <EvidenceTable evidence={evidence} settings={settings} />
       </div>
 
+      <GatesPanel verdicts={verdicts} />
+      {user && run.variantIds.length === 1 && run.variantIds[0] === parentId && (
+        <RepairCard pid={pid} uid={user.uid} run={run} feature={feature} variants={variants ?? []} cases={cases} jobs={jobs} evidence={evidence} settings={settings} finished={finished} />
+      )}
+
       <div className="card-head" style={{ marginTop: 24 }}>
         <h2 style={{ margin: 0, fontSize: 15 }}>Matrix</h2>
         <Legend />
@@ -125,7 +147,7 @@ export function RunPage({ pid, fid, rid }: { pid: string; fid: string; rid: stri
         </table>
       </div>
 
-      <Publish pid={pid} fid={fid} rid={rid} feature={feature} evidence={evidence} variants={variants ?? []} settings={settings} finished={finished} />
+      <Publish pid={pid} fid={fid} rid={rid} feature={feature} evidence={publishable} live={live} variants={variants ?? []} settings={settings} finished={finished} />
 
       {open && <CellDrawer cell={open} testCase={byId.get(open.caseId)} jobs={jobs} onClose={() => setOpen(undefined)} />}
     </div>
@@ -207,7 +229,7 @@ function Samples({ cell }: { cell: Cell }) {
   );
 }
 
-type Settings = typeof DEFAULT_SETTINGS & { latencyBudgetMs: number };
+export type Settings = typeof DEFAULT_SETTINGS & { latencyBudgetMs: number };
 
 const REASON_TEXT: Record<string, string> = {
   PASSED: "Route to device",
@@ -264,11 +286,8 @@ function EvidenceTable({ evidence, settings }: { evidence: Evidence[]; settings:
   );
 }
 
-function Publish({ pid, fid, rid, feature, evidence, variants, settings, finished }: { pid: string; fid: string; rid: string; feature: { id: string; outputKind: "json" | "enum" | "text"; outputSchema: Policy["outputSchema"] & object; cloudModel: string; latencyBudgetMs: number; defaultVariantId?: string }; evidence: Evidence[]; variants: { id: string; systemInstruction: string; promptTemplate: string; sha256: string }[]; settings: Settings; finished: boolean }) {
-  const repo = useRepo();
-  const published = useLive<PublishedPolicy[]>((cb) => repo.watchPolicies(pid, fid, cb), [pid, fid]);
+function Publish({ pid, fid, rid, feature, evidence, live, variants, settings, finished }: { pid: string; fid: string; rid: string; live: PublishedPolicy | undefined; feature: { id: string; outputKind: "json" | "enum" | "text"; outputSchema: Policy["outputSchema"] & object; cloudModel: string; latencyBudgetMs: number; defaultVariantId?: string }; evidence: Evidence[]; variants: { id: string; systemInstruction: string; promptTemplate: string; sha256: string }[]; settings: Settings; finished: boolean }) {
   const [state, setState] = useState<{ busy?: boolean; err?: string; ok?: string }>({});
-  const live = published?.[0];
 
   const compiled = useMemo(() => {
     const vs: Record<string, PolicyVariant> = {};
