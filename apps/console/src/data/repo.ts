@@ -21,6 +21,7 @@ import {
 import type { Case, Feature, Job, ModelId, Policy, Variant } from "@tandem/core";
 import type { JudgeCache, JudgeVerdict } from "../judge.js";
 import type { Catalog } from "../runner/loop.js";
+import type { HourAggregate, Incident } from "./observe.js";
 import { planJobs, type RunPlan } from "./plan.js";
 import type { SeedFeature } from "./seed.js";
 
@@ -327,6 +328,17 @@ export class Repo {
     return watch<PublishedPolicy>(
       query(collection(this.db, ...this.p(pid, "policies")), where("featureId", "==", fid)),
       (rows) => cb(rows.sort((a, b) => b.version - a.version)),
+    );
+  }
+
+  // ---------- observe (written by aggregateTelemetry / autoRollback) ----------
+  watchTelemetry(pid: string, sinceHour: number, cb: (a: HourAggregate[]) => void) {
+    return watch<HourAggregate>(query(collection(this.db, ...this.p(pid, "telemetry_agg")), where("hour", ">=", sinceHour)), cb);
+  }
+
+  watchIncidents(pid: string, cb: (i: Incident[]) => void) {
+    return watch<Incident>(query(collection(this.db, ...this.p(pid, "incidents")), limit(50)), (rows) =>
+      cb(rows.sort((a, b) => (b.at?.toMillis() ?? Infinity) - (a.at?.toMillis() ?? Infinity))),
     );
   }
 

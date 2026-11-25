@@ -190,3 +190,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .page { padding: 20px 16px 48px; }
 }
+
+/* ---------- observe ---------- */
+.spark { display: inline-flex; align-items: flex-end; gap: 2px; height: 22px; }
+.spark-col { width: 4px; height: 100%; display: flex; flex-direction: column-reverse; background: var(--panel-2); border-radius: 1px; overflow: hidden; }
+.spark-col i { display: block; width: 100%; }
+.spark-col i.device { background: var(--device); }
+.spark-col i.cloud { background: var(--cloud); opacity: .7; }

@@ -5,7 +5,7 @@ export default defineConfig({
     include: ["test/**/*.test.ts"],
     coverage: {
       provider: "v8",
-      include: ["src/runner/**/*.ts", "src/data/plan.ts", "src/data/seed.ts", "src/judge.ts", "src/repair.ts"],
+      include: ["src/runner/**/*.ts", "src/data/plan.ts", "src/data/seed.ts", "src/judge.ts", "src/repair.ts", "src/data/observe.ts"],
       exclude: ["src/runner/firestoreQueue.ts"],
       thresholds: { lines: 90, functions: 90, branches: 85, statements: 90 },
       reporter: ["text", "json-summary"],

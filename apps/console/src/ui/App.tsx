@@ -10,6 +10,7 @@ import { RunnerProvider, useRunner } from "./runner.js";
 import { FeaturePage } from "./FeaturePage.js";
 import { RunPage } from "./RunPage.js";
 import { DevicesPage } from "./DevicesPage.js";
+import { ObservePage } from "./ObservePage.js";
 
 export function App() {
   const user = useUser();
@@ -138,6 +139,7 @@ function Shell({ pid, route, user, projects }: { pid: string; route: string[]; u
   if (fid && rid) page = <RunPage pid={pid} fid={fid} rid={rid} />;
   else if (fid) page = <FeaturePage pid={pid} fid={fid} uid={user.uid} tab={route[4]} />;
   else if (section === "devices") page = <DevicesPage pid={pid} uid={user.uid} />;
+  else if (section === "observe") page = <ObservePage pid={pid} />;
   else page = <Overview pid={pid} name={project?.name ?? ""} features={features} />;
 
   return (
@@ -164,6 +166,9 @@ function Shell({ pid, route, user, projects }: { pid: string; route: string[]; u
         <a className={`nav-item ${section === "devices" ? "active" : ""}`} href={href("p", pid, "devices")}>
           Devices & runner
           <span className={`dot ${runner.deviceOn ? "device live" : ""}`} />
+        </a>
+        <a className={`nav-item ${section === "observe" ? "active" : ""}`} href={href("p", pid, "observe")}>
+          Observe
         </a>
         <h6>Features</h6>
         {(features ?? []).map((f) => (
