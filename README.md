@@ -81,15 +81,16 @@ after 7 days. [ADR 0005](docs/adr/0005-no-content-in-telemetry.md).
 
 ## Repository
 
-| Path                                            | What                                                                              | State                        |
-| ----------------------------------------------- | --------------------------------------------------------------------------------- | ---------------------------- |
-| [`contracts/`](contracts)                       | JSON Schemas for every data shape + golden fixtures                               | done                         |
-| [`packages/core/`](packages/core)               | pure TS engine: checks, Wilson, compiler, repair gates, budgets, rollback, Pareto | done — 113 tests, 100% lines |
-| [`firebase/`](firebase)                         | Firestore rules (lease state machine, telemetry allowlist), indexes, RC template  | done — 19 emulator tests     |
-| `apps/console/`                                 | dashboard + Chrome on-device runner                                               | in progress                  |
-| [`packages/runtime-web/`](packages/runtime-web) | `tandem.generate()` for web: verified fallback, RC real-time, telemetry           | done — 74 tests, 100% lines  |
-| `apps/android/`, `apps/ios/`                    | runtime SDKs with verified fallback                                               | in progress                  |
-| `functions/`                                    | publishPolicy, claimPairing, aggregateTelemetry, autoRollback, reapLeases         | in progress                  |
+| Path                                            | What                                                                              | State                                                  |
+| ----------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| [`contracts/`](contracts)                       | JSON Schemas for every data shape + golden fixtures                               | done                                                   |
+| [`packages/core/`](packages/core)               | pure TS engine: checks, Wilson, compiler, repair gates, budgets, rollback, Pareto | done — 117 tests, 100% lines                           |
+| [`firebase/`](firebase)                         | Firestore rules (lease state machine, telemetry allowlist), indexes, RC template  | done — 20 emulator tests                               |
+| [`packages/runtime-web/`](packages/runtime-web) | `tandem.generate()` for web: verified fallback, RC real-time, telemetry           | done — 74 tests, 100% lines                            |
+| [`apps/console/`](apps/console)                 | dashboard + Chrome on-device runner, judge, repair gates, publish, Observe        | working on real Gemini Nano — 35 tests                 |
+| [`apps/counter-web/`](apps/counter-web)         | sample support inbox calling `tandem.generate()`                                  | working locally; live routing needs a Firebase project |
+| [`functions/`](functions)                       | publishPolicy, claimPairing, aggregateTelemetry, autoRollback, reapLeases         | done on the emulator — 25 tests                        |
+| `apps/android/`, `apps/ios/`                    | runtime SDKs with verified fallback                                               | not started                                            |
 
 Architecture decisions: [`docs/adr/`](docs/adr). Platform API notes (verified Nov 25, 2026):
 [`docs/PLATFORM_NOTES.md`](docs/PLATFORM_NOTES.md).
