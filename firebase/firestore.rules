@@ -118,11 +118,15 @@ service cloud.firestore {
             && !('result' in incoming());
 
           allow update: if
-            // claim
+            // claim — a device claims its own model's jobs; a member's console claims the cloud
+            // reference jobs (no device involved, so no integrity question arises)
             (
-              (isMember(pid) || isRunner(pid)) && hasMyDevice(pid)
+              (
+                ((isMember(pid) || isRunner(pid)) && hasMyDevice(pid)
+                  && myDevice(pid).modelId == existing().target)
+                || (isMember(pid) && existing().target.matches('^cloud:[A-Za-z0-9._-]+$'))
+              )
               && existing().state == 'queued'
-              && myDevice(pid).modelId == existing().target
               && changedKeys().hasOnly(['state', 'leaseOwner', 'leaseExpiresAt', 'attempt'])
               && incoming().state == 'leased'
               && incoming().leaseOwner == uid()

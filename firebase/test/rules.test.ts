@@ -243,6 +243,29 @@ describe("job lease state machine", () => {
     await assertFails(updateDoc(job(RUNNER, "j-chrome"), claim(RUNNER)));
   });
 
+  it("members' consoles claim cloud reference jobs; runners and strangers cannot", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `${P}/runs/r1/jobs/j-cloud`), {
+        target: "cloud:gemini-3.5-flash-lite",
+        state: "queued",
+        attempt: 0,
+        caseId: "c1",
+      });
+    });
+    await assertFails(updateDoc(job(RUNNER, "j-cloud"), claim(RUNNER)));
+    await assertFails(updateDoc(job(STRANGER, "j-cloud"), claim(STRANGER)));
+    await assertSucceeds(updateDoc(job(MEMBER, "j-cloud"), claim(MEMBER)));
+    await assertSucceeds(
+      updateDoc(job(MEMBER, "j-cloud"), {
+        state: "done",
+        result: { modelId: "cloud:gemini-3.5-flash-lite", backend: "IN_CLOUD", latencyMs: 640 },
+        verdict: "pass",
+      }),
+    );
+    // a member without a matching device still cannot claim device work
+    await assertFails(updateDoc(job(MEMBER, "j-chrome"), claim(MEMBER)));
+  });
+
   it("claims must be well-formed", async () => {
     await assertFails(updateDoc(job(RUNNER), claim(MEMBER)));
     await assertFails(updateDoc(job(RUNNER), claim(RUNNER, { attempt: 5 })));
