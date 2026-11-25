@@ -10,6 +10,8 @@ export default tseslint.config(
       "apps/android/**",
       "apps/ios/**",
       "**/*.config.ts",
+      "functions/lib/**",
+      "**/*.mjs",
     ],
   },
   js.configs.recommended,
